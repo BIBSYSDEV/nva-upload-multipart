@@ -38,7 +38,7 @@ Resources:
           title: NVA S3 Multipart Upload
           version: '1.0'
         paths:
-          /:
+          /create:
             post:
               summary: Create multipart upload
               security:
@@ -58,6 +58,7 @@ Resources:
                 passthroughBehavior: WHEN_NO_MATCH
               responses:
                 '201':
+                  description: 'Upload Created'
                   content:
                     application/json:
                       schema:
@@ -106,7 +107,7 @@ Resources:
                   description: Key to reference upload resource in S3
 
   CreateMultipartUploadFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       Environment:
         Variables:
@@ -116,7 +117,41 @@ Resources:
       MemorySize: 512
       Events:
         NvaBareFetchEvent:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
+          Properties:
+            Path: /
+            Method: post
+            RestApiId: !Ref UploadApi
+
+  listPartsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment:
+        Variables:
+          S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
+      Handler: no.unit.nva.amazon.s3.ListPartsHandler::handleRequest
+      Runtime: java8
+      MemorySize: 512
+      Events:
+        NvaBareFetchEvent:
+          Type: Api
+          Properties:
+            Path: /
+            Method: post
+            RestApiId: !Ref UploadApi
+
+  prepareUploadPartFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment:
+        Variables:
+          S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
+      Handler: no.unit.nva.amazon.s3.PrepareUploadPartHandler::handleRequest
+      Runtime: java8
+      MemorySize: 512
+      Events:
+        NvaBareFetchEvent:
+          Type: Api
           Properties:
             Path: /
             Method: post
