@@ -3,7 +3,6 @@ package no.unit.nva.amazon.s3;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import no.unit.nva.doi.GatewayResponse;
 
 import java.util.Map;
 
