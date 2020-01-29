@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Backend for uploading files to Amazon S3 via Uppy / Companion.
+
+Globals:
+  Function:
+    Timeout: 20
+  Api:
+    Cors:
+      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+      AllowMethods: "'OPTIONS, GET, PUT, POST'"
+      AllowOrigin: "'*'"
+
+Parameters:
+  CognitoAuthorizerArn:
+    Type: String
+    Description: Reference to Cognito UserPool for the stage
+  CustomDomain:
+    Type: String
+    Description: Custom API to connect this lambda to
+  CustomDomainBasePath:
+    Type: String
+    Description: Base path mapping in CustomDomain
+  S3UploadBucket:
+    Type: String
+    Description: S3 Bucket to upload files to
+
+Resources:
+
+  UploadApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      EndpointConfiguration: REGIONAL
+      DefinitionBody:
+        openapi: 3.0.0
+        info:
+          title: NVA S3 Multipart Upload
+          version: '1.0'
+        paths:
+          /:
+            post:
+              summary: Create multipart upload
+              security:
+                - CognitoUserPool: []
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/createMultipartUploadRequestBody'
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateMultipartUploadFunction.Arn}/invocations
+                responses: {}
+                httpMethod: POST
+                type: AWS_PROXY
+                passthroughBehavior: WHEN_NO_MATCH
+              responses:
+                '201':
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/components/schemas/createMultipartUploadResponseBody'
+        Components:
+          securitySchemes:
+            CognitoUserPool:
+              type: apiKey
+              name: Authorization
+              in: header
+              x-amazon-apigateway-authtype: cognito_user_pools
+              x-amazon-apigateway-authorizer:
+                type: cognito_user_pools
+                providerARNs:
+                  - !Ref CognitoAuthorizerArn
+          schemas:
+            createMultipartUploadRequestBody:
+              title: create multipart upload
+              type: object
+              properties:
+                filename:
+                  type: string
+                  description: Name of file to upload
+                size:
+                  type: string
+                  description: Size of file
+                mimetype:
+                  type: string
+                  description: MIME type of file
+                lastmodified:
+                  type: string
+                  description: last modified time of the file, in millisecond since the UNIX epoch
+              required:
+                - filename
+                - size
+                - mimetype
+            createMultipartUploadResponseBody:
+              title: create multipart upload
+              type: object
+              properties:
+                uploadid:
+                  type: string
+                  description: UploadID to access upload resource in S3
+                key:
+                  type: string
+                  description: Key to reference upload resource in S3
+
+  CreateMultipartUploadFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      Environment:
+        Variables:
+          S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
+      Handler: no.unit.nva.amazon.s3.CreateUploadHandler::handleRequest
+      Runtime: java8
+      MemorySize: 512
+      Events:
+        NvaBareFetchEvent:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /
+            Method: post
+            RestApiId: !Ref UploadApi
+
+
+
+  NvaBareProxyBasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: !Ref CustomDomainBasePath
+      DomainName: !Ref CustomDomain
+      RestApiId: !Ref UploadApi
+      Stage: !Ref UploadApi.Stage
