@@ -258,9 +258,13 @@ Resources:
                 key:
                   type: string
                   description: Identifier (UUID) of the uploaded file, object key in the S3 bucket
+                resourceIdentifier:
+                  type: string
+                  description: Identifier (UUID) of the resource owning the uploaded file
               required:
                 - uploadId
                 - key
+                - resourceIdentifier
 
             createUploadResponseBody:
               title: create multipart upload

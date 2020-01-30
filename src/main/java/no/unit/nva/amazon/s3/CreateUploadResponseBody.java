@@ -1,0 +1,8 @@
+package no.unit.nva.amazon.s3;
+
+public class CreateUploadResponseBody {
+
+    public String uploadId;
+    public String key;
+
+}
