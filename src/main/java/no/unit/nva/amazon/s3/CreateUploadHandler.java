@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
-import static org.apache.http.HttpStatus.SC_OK;
+import static org.apache.http.HttpStatus.SC_CREATED;
 
 
 public class CreateUploadHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
@@ -54,7 +54,7 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
             responseBody.uploadId = initResponse.getUploadId();
             responseBody.key = keyName;
 
-            final GatewayResponse response = new GatewayResponse(new Gson().toJson(responseBody), SC_OK);
+            final GatewayResponse response = new GatewayResponse(new Gson().toJson(responseBody), SC_CREATED);
             System.out.println(response);
             return response;
         } catch (Exception e) {
