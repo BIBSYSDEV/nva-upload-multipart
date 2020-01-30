@@ -63,6 +63,9 @@ Resources:
                     application/json:
                       schema:
                         $ref: '#/components/schemas/createUploadResponseBody'
+                '403':
+                  description: 'Acccess denied'
+
           /listparts:
             post:
               summary: List the parts of a file that have already been uploaded.
@@ -309,6 +312,7 @@ Resources:
       Handler: no.unit.nva.amazon.s3.CreateUploadHandler::handleRequest
       Runtime: java8
       MemorySize: 512
+      Role: !GetAtt UploadExecutionRole.Arn
       Events:
         CreateEvent:
           Type: Api
@@ -393,3 +397,32 @@ Resources:
       DomainName: !Ref CustomDomain
       RestApiId: !Ref UploadApi
       Stage: !Ref UploadApi.Stage
+
+  UploadExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [lambda.amazonaws.com]
+            Action: ['sts:AssumeRole']
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: manage-uploads
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:ListBucketMultipartUploads
+                  - s3:AbortMultipartUpload
+                  - s3:ListMultipartUploadParts
+                Resource:
+                  - arn:aws:s3:::nva-storage-develop
+                  - arn:aws:s3:::nva-storage-develop/*
+
