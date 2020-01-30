@@ -16,6 +16,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
@@ -31,31 +32,39 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
     @Override
     public GatewayResponse handleRequest(Map<String, Object> input, Context context) {
 
+        try {
 
-        CreateUploadRequestBody requestBody = checkParameters(input);
+            CreateUploadRequestBody requestBody = checkParameters(input);
 
 
-        ObjectMetadata objectMetadata = new ObjectMetadata();
+            ObjectMetadata objectMetadata = new ObjectMetadata();
 
-        if (requestBody.filename != null && !requestBody.filename.isEmpty()) {
-            objectMetadata.setContentDisposition("filename=\"" + requestBody.filename + "\"");
+            if (requestBody.filename != null && !requestBody.filename.isEmpty()) {
+                objectMetadata.setContentDisposition("filename=\"" + requestBody.filename + "\"");
+            }
+            if (requestBody.mimetype != null && !requestBody.mimetype.isEmpty() && requestBody.mimetype.contains("/")) {
+                objectMetadata.setContentType(requestBody.mimetype);
+            }
+
+            String bucketName = new Environment().get("S3_UPLOAD_BUCKET").orElseThrow(IllegalStateException::new);
+
+            String keyName = UUID.randomUUID().toString();
+            InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(bucketName, keyName,
+                    objectMetadata);
+            InitiateMultipartUploadResult initResponse = getAmazonS3Client().initiateMultipartUpload(initRequest);
+            System.out.println(initResponse);
+            CreateUploadResponseBody responseBody = new CreateUploadResponseBody();
+            responseBody.uploadId = initResponse.getUploadId();
+            responseBody.key = keyName;
+
+            final GatewayResponse<CreateUploadResponseBody> response =
+                    new GatewayResponse<>(responseBody, headers(), SC_OK);
+            System.out.println(response);
+            return response;
+        } catch (Exception e) {
+            System.out.println(e);
+            return new GatewayResponse(null,headers(), SC_INTERNAL_SERVER_ERROR);
         }
-        if (requestBody.mimetype != null && !requestBody.mimetype.isEmpty() && requestBody.mimetype.contains("/")) {
-            objectMetadata.setContentType(requestBody.mimetype);
-        }
-
-        String bucketName = new Environment().get("S3_UPLOAD_BUCKET").orElseThrow(IllegalStateException::new);
-
-        String keyName = UUID.randomUUID().toString();
-        InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(bucketName, keyName,
-                objectMetadata);
-        InitiateMultipartUploadResult initResponse = getAmazonS3Client().initiateMultipartUpload(initRequest);
-
-        CreateUploadResponseBody responseBody = new CreateUploadResponseBody();
-        responseBody.uploadId = initResponse.getUploadId();
-        responseBody.key = keyName;
-
-        return new GatewayResponse<>(responseBody, headers(), SC_OK);
 
     }
 
