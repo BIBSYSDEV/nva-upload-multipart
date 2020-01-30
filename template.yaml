@@ -35,12 +35,12 @@ Resources:
       DefinitionBody:
         openapi: 3.0.0
         info:
-          title: NVA S3 Multipart Upload
+          title: NVA S3 (Multipart) Upload
           version: '1.0'
         paths:
           /create:
             post:
-              summary: Create multipart upload
+              summary: Create (multipart) upload
               security:
                 - CognitoUserPool: []
               requestBody:
@@ -48,10 +48,10 @@ Resources:
                 content:
                   application/json:
                     schema:
-                      $ref: '#/components/schemas/createMultipartUploadRequestBody'
+                      $ref: '#/components/schemas/createUploadRequestBody'
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateMultipartUploadFunction.Arn}/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateUploadFunction.Arn}/invocations
                 responses: {}
                 httpMethod: POST
                 type: AWS_PROXY
@@ -62,7 +62,108 @@ Resources:
                   content:
                     application/json:
                       schema:
-                        $ref: '#/components/schemas/createMultipartUploadResponseBody'
+                        $ref: '#/components/schemas/createUploadResponseBody'
+          /listparts:
+            post:
+              summary: List the parts of a file that have already been uploaded.
+              security:
+                - CognitoUserPool: []
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/listPartsRequestBody'
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ListPartsUploadFunction.Arn}/invocations
+                responses: {}
+                httpMethod: POST
+                type: AWS_PROXY
+                passthroughBehavior: WHEN_NO_MATCH
+              responses:
+                '201':
+                  description: 'Parts already uploaded'
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/components/schemas/listPartsResponseBody'
+          /prepare:
+            post:
+              summary:  Generates a presigned URL to upload a single part
+              security:
+                - CognitoUserPool: []
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/prepareUploadPartRequestBody'
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PrepareUploadPartFunction.Arn}/invocations
+                responses: {}
+                httpMethod: POST
+                type: AWS_PROXY
+                passthroughBehavior: WHEN_NO_MATCH
+              responses:
+                '200':
+                  description: 'presigned upload url'
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/components/schemas/prepareUploadPartResponseBody'
+          /abort:
+            post:
+              summary: Aborts a Multipart upload, and deletes all parts that have been uploaded so far.
+              security:
+                - CognitoUserPool: []
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/abortUploadRequestBody'
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AbortMultipartUploadFunction.Arn}/invocations
+                responses: {}
+                httpMethod: POST
+                type: AWS_PROXY
+                passthroughBehavior: WHEN_NO_MATCH
+              responses:
+                '200':
+                  description: 'Upload Aborted'
+                  content:
+                    application/json:
+                      schema:
+                        type: object
+          /complete:
+            post:
+              summary: Completes a Multipart upload, combining all parts into a single object in the S3 bucket
+              security:
+                - CognitoUserPool: []
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/completeUploadRequestBody'
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CompleteUploadFunction.Arn}/invocations
+                responses: {}
+                httpMethod: POST
+                type: AWS_PROXY
+                passthroughBehavior: WHEN_NO_MATCH
+              responses:
+                '200':
+                  description: 'Upload Completed'
+                  content:
+                    application/json:
+                      schema:
+                        type: object
+
         components:
           securitySchemes:
             CognitoUserPool:
@@ -75,7 +176,7 @@ Resources:
                 providerARNs:
                   - !Ref CognitoAuthorizerArn
           schemas:
-            createMultipartUploadRequestBody:
+            createUploadRequestBody:
               title: create multipart upload
               type: object
               properties:
@@ -91,22 +192,111 @@ Resources:
                 lastmodified:
                   type: string
                   description: last modified time of the file, in millisecond since the UNIX epoch
+                md5hash:
+                  type: string
+                  description: MD5 Hash to verify file after upload
               required:
                 - filename
                 - size
-                - mimetype
-            createMultipartUploadResponseBody:
+                - md5hash
+
+            listPartsRequestBody:
+              title: List parts already uploaded
+              type: object
+              properties:
+                uploadId:
+                  type: string
+                  description: S3 Identifier upload
+                key:
+                  type: string
+                  description: Identifier (UUID) of the uploaded file, object key in the S3 bucket
+              required:
+                - uploadId
+                - key
+
+            prepareUploadPartRequestBody:
+              title: List parts already uploaded
+              type: object
+              properties:
+                uploadId:
+                  type: string
+                  description: S3 Identifier upload
+                key:
+                  type: string
+                  description: Identifier (UUID) of the uploaded file, object key in the S3 bucket
+                body:
+                  type: string
+                  description: this parts content (empty?)
+                number:
+                  type: string
+                  description: The index of this part in the file (PartNumber in S3 terminology)
+              required:
+                - uploadId
+                - key
+
+            abortUploadRequestBody:
+              title: Abort (multipart) upload
+              type: object
+              properties:
+                uploadId:
+                  type: string
+                  description: S3 Identifier upload
+                key:
+                  type: string
+                  description: Identifier (UUID) of the uploaded file, object key in the S3 bucket
+              required:
+                - uploadId
+                - key
+
+            completeUploadRequestBody:
+              title: Complete and finalize (multipart) upload
+              type: object
+              properties:
+                uploadId:
+                  type: string
+                  description: S3 Identifier upload
+                key:
+                  type: string
+                  description: Identifier (UUID) of the uploaded file, object key in the S3 bucket
+              required:
+                - uploadId
+                - key
+
+            createUploadResponseBody:
               title: create multipart upload
               type: object
               properties:
-                uploadid:
+                uploadId:
                   type: string
                   description: UploadID to access upload resource in S3
                 key:
                   type: string
-                  description: Key to reference upload resource in S3
+                  description: Key to reference uploaded resource in S3 (UUID)
 
-  CreateMultipartUploadFunction:
+            listPartsResponseBody:
+              title: create multipart upload
+              type: object
+              properties:
+                PartNumber:
+                  type: string
+                  description: The index in the file of the uploaded part.
+                Size:
+                  type: string
+                  description: The size of the part in bytes.
+                ETag:
+                  type: string
+                  description: The ETag of the part, used to identify it when completing the multipart upload and combining all parts into a single file.
+
+            prepareUploadPartResponseBody:
+              title: Generates a signed URL to upload a single part
+              type: object
+              properties:
+                url:
+                  type: string
+                  description: The presigned URL to upload a part
+
+
+  CreateUploadFunction:
     Type: AWS::Serverless::Function
     Properties:
       Environment:
@@ -116,14 +306,14 @@ Resources:
       Runtime: java8
       MemorySize: 512
       Events:
-        NvaBareFetchEvent:
+        CreateEvent:
           Type: Api
           Properties:
-            Path: /
+            Path: /create
             Method: post
             RestApiId: !Ref UploadApi
 
-  listPartsFunction:
+  ListPartsUploadFunction:
     Type: AWS::Serverless::Function
     Properties:
       Environment:
@@ -133,14 +323,14 @@ Resources:
       Runtime: java8
       MemorySize: 512
       Events:
-        NvaBareFetchEvent:
+        ListEvent:
           Type: Api
           Properties:
-            Path: /
+            Path: /listParts
             Method: post
             RestApiId: !Ref UploadApi
 
-  prepareUploadPartFunction:
+  PrepareUploadPartFunction:
     Type: AWS::Serverless::Function
     Properties:
       Environment:
@@ -150,16 +340,49 @@ Resources:
       Runtime: java8
       MemorySize: 512
       Events:
-        NvaBareFetchEvent:
+        PrepareEvent:
           Type: Api
           Properties:
-            Path: /
+            Path: /prepare
+            Method: post
+            RestApiId: !Ref UploadApi
+
+  AbortUploadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment:
+        Variables:
+          S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
+      Handler: no.unit.nva.amazon.s3.AbortUploadPartHandler::handleRequest
+      Runtime: java8
+      MemorySize: 512
+      Events:
+        AbortEvent:
+          Type: Api
+          Properties:
+            Path: /abort
+            Method: post
+            RestApiId: !Ref UploadApi
+
+  CompleteUploadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment:
+        Variables:
+          S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
+      Handler: no.unit.nva.amazon.s3.CompleteUploadHandler::handleRequest
+      Runtime: java8
+      MemorySize: 512
+      Events:
+        CompleteEvent:
+          Type: Api
+          Properties:
+            Path: /complete
             Method: post
             RestApiId: !Ref UploadApi
 
 
-
-  NvaBareProxyBasePathMapping:
+  UploadApiMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
       BasePath: !Ref CustomDomainBasePath
