@@ -82,7 +82,7 @@ Resources:
                 type: AWS_PROXY
                 passthroughBehavior: WHEN_NO_MATCH
               responses:
-                '201':
+                '200':
                   description: 'Parts already uploaded'
                   content:
                     application/json:
@@ -126,7 +126,7 @@ Resources:
                       $ref: '#/components/schemas/abortUploadRequestBody'
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AbortMultipartUploadFunction.Arn}/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AbortUploadFunction.Arn}/invocations
                 responses: {}
                 httpMethod: POST
                 type: AWS_PROXY
