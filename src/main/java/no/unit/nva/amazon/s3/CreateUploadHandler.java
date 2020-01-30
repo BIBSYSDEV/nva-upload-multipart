@@ -64,7 +64,6 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
     private AmazonS3 getAmazonS3Client() {
         AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
                 .withRegion(clientRegion)
-                .withCredentials(new SystemPropertiesCredentialsProvider() )
                 .build();
         return s3Client;
     }
