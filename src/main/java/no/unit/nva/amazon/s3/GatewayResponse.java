@@ -1,36 +1,47 @@
 package no.unit.nva.amazon.s3;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class GatewayResponse<T> {
+/**
+ * POJO containing response object for API Gateway.
+ */
+public class GatewayResponse {
 
-    private final T body;
-    private final Map<String, String> headers;
-    private final int statusCode;
+    public static final String CORS_ALLOW_ORIGIN_HEADER = "Access-Control-Allow-Origin";
+    public static final String EMPTY_JSON = "{}";
+    public static final transient String ERROR_KEY = "error";
+    private String body;
+    private transient Map<String, String> headers;
+    private int statusCode;
 
     /**
-     * Constructor for GatewayResponse.
-     *
-     * @param body  body of response
-     * @param headers   http headers for response
-     * @param statusCode    status code for response
+     * GatewayResponse contains response status, response headers and body with payload resp. error messages.
      */
-    @JsonCreator
-    public GatewayResponse(
-            @JsonProperty("body") final T body,
-            @JsonProperty("headers") final Map<String, String> headers,
-            @JsonProperty("statusCode") final int statusCode) {
-        this.statusCode = statusCode;
-        this.body = body;
-        this.headers = Collections.unmodifiableMap(new HashMap<>(headers));
+    public GatewayResponse() {
+        this.statusCode = Response.Status.INTERNAL_SERVER_ERROR.getStatusCode();
+        this.body = EMPTY_JSON;
+        this.generateDefaultHeaders();
     }
 
-    public T getBody() {
+    /**
+     * GatewayResponse convenience constructor to set response status and body with payload direct.
+     */
+    public GatewayResponse(final String body, final int status) {
+        this.statusCode = status;
+        this.body = body;
+        this.generateDefaultHeaders();
+    }
+
+    public String getBody() {
         return body;
     }
 
@@ -40,5 +51,43 @@ public class GatewayResponse<T> {
 
     public int getStatusCode() {
         return statusCode;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
+
+    public void setStatusCode(int status) {
+        this.statusCode = status;
+    }
+
+    /**
+     * Set error message as a json string to body.
+     *
+     * @param message message from exception
+     */
+    public void setErrorBody(String message) {
+        JsonObject json = new JsonObject();
+        json.addProperty(ERROR_KEY, message);
+        this.body = json.toString();
+    }
+
+    private void generateDefaultHeaders() {
+        Map<String, String> headers = new ConcurrentHashMap<>();
+        headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+        final String corsAllowDomain = Config.getInstance().getCorsHeader();
+        if (StringUtils.isNotEmpty(corsAllowDomain)) {
+            headers.put(CORS_ALLOW_ORIGIN_HEADER, corsAllowDomain);
+        }
+        this.headers = Collections.unmodifiableMap(new HashMap<>(headers));
+    }
+
+    @Override
+    public String toString() {
+        return "GatewayResponse{"
+                + "body='" + body + '\''
+                + ", headers=" + headers
+                + ", statusCode=" + statusCode
+                + '}';
     }
 }

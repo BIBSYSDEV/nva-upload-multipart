@@ -13,12 +13,9 @@ import com.google.gson.Gson;
 
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
-import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.apache.http.HttpStatus.SC_OK;
-import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 
 public class CreateUploadHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
@@ -57,13 +54,12 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
             responseBody.uploadId = initResponse.getUploadId();
             responseBody.key = keyName;
 
-            final GatewayResponse<CreateUploadResponseBody> response =
-                    new GatewayResponse<>(responseBody, headers(), SC_OK);
+            final GatewayResponse response = new GatewayResponse(new Gson().toJson(responseBody), SC_OK);
             System.out.println(response);
             return response;
         } catch (Exception e) {
             System.out.println(e);
-            return new GatewayResponse(null,headers(), SC_INTERNAL_SERVER_ERROR);
+            return new GatewayResponse(null, SC_INTERNAL_SERVER_ERROR);
         }
 
     }
@@ -80,12 +76,5 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
         String body = (String) input.get(BODY);
         CreateUploadRequestBody requestBody = new Gson().fromJson(body, CreateUploadRequestBody.class);
         return requestBody;
-    }
-
-    private Map<String, String> headers() {
-        Map<String, String> headers = new ConcurrentHashMap<>();
-        headers.put(ACCESS_CONTROL_ALLOW_ORIGIN, allowedOrigin);
-        headers.put(CONTENT_TYPE, APPLICATION_JSON.getMimeType());
-        return headers;
     }
 }
