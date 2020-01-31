@@ -1,7 +1,6 @@
 package no.unit.nva.amazon.s3;
 
 
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
@@ -15,20 +14,21 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
-import static org.apache.http.HttpStatus.SC_CREATED;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.apache.http.HttpStatus.SC_CREATED;
+import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 public class CreateUploadHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
 
-    public static final Regions clientRegion = Regions.EU_WEST_1;
+    public final  transient String clientRegion;
     public static final String BODY = "body";
     public static final String ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
     private final transient String allowedOrigin;
 
     public CreateUploadHandler() {
         this.allowedOrigin =  new Environment().get("ALLOWED_ORIGIN").orElseThrow(IllegalStateException::new);
+        this.clientRegion =  new Environment().get("ALLOWED_ORIGIN").orElseThrow(IllegalStateException::new);
     }
 
 

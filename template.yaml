@@ -315,7 +315,7 @@ Resources:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
-          AWS_REGION: !Sub '${AWS::Region}'
+
       Handler: no.unit.nva.amazon.s3.CreateUploadHandler::handleRequest
       Runtime: java8
       MemorySize: 512
