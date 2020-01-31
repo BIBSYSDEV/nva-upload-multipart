@@ -28,7 +28,7 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
 
     public CreateUploadHandler() {
         this.allowedOrigin =  new Environment().get("ALLOWED_ORIGIN").orElseThrow(IllegalStateException::new);
-        this.clientRegion =  new Environment().get("ALLOWED_ORIGIN").orElseThrow(IllegalStateException::new);
+        this.clientRegion =  new Environment().get("AWS_REGION").orElseThrow(IllegalStateException::new);
     }
 
 
