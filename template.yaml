@@ -63,8 +63,13 @@ Resources:
                     application/json:
                       schema:
                         $ref: '#/components/schemas/createUploadResponseBody'
-                '403':
-                  description: 'Acccess denied'
+                '401':
+                  description: 'Unauthorized'
+                  content:
+                    application/json:
+                      schema:
+                        type: object
+
 
           /listparts:
             post:
@@ -309,6 +314,8 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
+          ALLOWED_ORIGIN:  '*'
+          AWS_REGION: !Sub '${AWS::Region}'
       Handler: no.unit.nva.amazon.s3.CreateUploadHandler::handleRequest
       Runtime: java8
       MemorySize: 512

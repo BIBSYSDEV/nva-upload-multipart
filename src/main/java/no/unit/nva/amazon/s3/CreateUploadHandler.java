@@ -13,17 +13,23 @@ import com.google.gson.Gson;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.apache.http.HttpStatus.SC_CREATED;
-
+import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 public class CreateUploadHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
 
-    public static final String allowedOrigin = "*";
     public static final Regions clientRegion = Regions.EU_WEST_1;
-    public static final String ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
     public static final String BODY = "body";
+    public static final String ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
+    private final transient String allowedOrigin;
+
+    public CreateUploadHandler() {
+        this.allowedOrigin =  new Environment().get("ALLOWED_ORIGIN").orElseThrow(IllegalStateException::new);
+    }
 
 
     @Override
@@ -54,12 +60,13 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
             responseBody.uploadId = initResponse.getUploadId();
             responseBody.key = keyName;
 
-            final GatewayResponse response = new GatewayResponse(new Gson().toJson(responseBody), SC_CREATED);
+            final GatewayResponse response =
+                    new GatewayResponse(new Gson().toJson(responseBody), headers(), SC_CREATED);
             System.out.println(response);
             return response;
         } catch (Exception e) {
             System.out.println(e);
-            return new GatewayResponse(null, SC_INTERNAL_SERVER_ERROR);
+            return new GatewayResponse(null, headers(), SC_INTERNAL_SERVER_ERROR);
         }
 
     }
@@ -77,4 +84,13 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
         CreateUploadRequestBody requestBody = new Gson().fromJson(body, CreateUploadRequestBody.class);
         return requestBody;
     }
+
+    private Map<String,String> headers() {
+        Map<String,String> headers = new ConcurrentHashMap<>();
+        headers.put(ACCESS_CONTROL_ALLOW_ORIGIN, allowedOrigin);
+        headers.put(CONTENT_TYPE, APPLICATION_JSON.getMimeType());
+        return headers;
+    }
+
+
 }

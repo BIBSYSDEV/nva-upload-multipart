@@ -35,10 +35,10 @@ public class GatewayResponse {
     /**
      * GatewayResponse convenience constructor to set response status and body with payload direct.
      */
-    public GatewayResponse(final String body, final int status) {
+    public GatewayResponse(final String body, Map<String,String> headers, final int status) {
         this.statusCode = status;
         this.body = body;
-        this.generateDefaultHeaders();
+        this.headers = headers;
     }
 
     public String getBody() {

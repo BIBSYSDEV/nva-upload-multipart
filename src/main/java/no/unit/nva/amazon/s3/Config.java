@@ -12,7 +12,7 @@ public class Config {
         private static final Config INSTANCE = new Config();
 
         static {
-            INSTANCE.setCorsHeader(System.getenv(CORS_ALLOW_ORIGIN_HEADER_ENVIRONMENT_NAME));
+            INSTANCE.setCorsHeader(new Environment().get("ALLOWED_ORIGIN").orElseThrow(IllegalStateException::new));
         }
     }
 
