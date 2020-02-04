@@ -6,12 +6,16 @@ public class ListPartsElement {
 
     private String partNumber;
     private String size;
-    private String eTag;
+    private String etag;
 
+    /**
+     * Contains parts information aboud upload, eTag and position.
+     * @param partSummary list of eTags and partsnumber
+     */
     public ListPartsElement(PartSummary partSummary) {
         this.partNumber = Integer.toString(partSummary.getPartNumber());
         this.size = Long.toString(partSummary.getSize());
-        this.eTag = partSummary.getETag();
+        this.etag = partSummary.getETag();
     }
 
     public String getPartNumber() {
@@ -30,11 +34,11 @@ public class ListPartsElement {
         this.size = size;
     }
 
-    public String getETag() {
-        return eTag;
+    public String getEtag() {
+        return etag;
     }
 
-    public void setETag(String eTag) {
-        this.eTag = eTag;
+    public void setEtag(String etag) {
+        this.etag = etag;
     }
 }

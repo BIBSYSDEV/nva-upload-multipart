@@ -107,6 +107,11 @@ public class ListPartsHandler implements RequestHandler<Map<String, Object>, Gat
         return response;
     }
 
+    /**
+     * Checks incoming parameters from api-gateway.
+     * @param input MAp of parameters from api-gateway
+     * @return POJO with checked parameters
+     */
     public ListPartsRequestBody checkParameters(Map<String, Object> input) {
         if (Objects.isNull(input)) {
             throw new ParameterMissingException("input");

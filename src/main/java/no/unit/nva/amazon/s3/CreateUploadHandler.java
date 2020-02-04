@@ -121,6 +121,11 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
         return objectMetadata;
     }
 
+    /**
+     * Checking incoming parameters from api-gateway.
+     * @param input Map of parameters from api-gateway
+     * @return POJO with parameters from api-gateway
+     */
     public CreateUploadRequestBody checkParameters(Map<String, Object> input) {
         if (Objects.isNull(input)) {
             throw new ParameterMissingException("input");

@@ -103,6 +103,11 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
         return response;
     }
 
+    /**
+     * Checks incoming parameters from api-gateway.
+     * @param input MAp of parameters from api-gateway
+     * @return POJO with checked parameters
+     */
     public PrepareUploadPartRequestBody checkParameters(Map<String, Object> input) {
         if (Objects.isNull(input)) {
             throw new ParameterMissingException("input");

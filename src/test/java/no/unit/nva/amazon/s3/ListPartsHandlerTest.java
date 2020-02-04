@@ -82,14 +82,11 @@ public class ListPartsHandlerTest {
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
 
-        AmazonS3 mockS3Client = mock(AmazonS3.class);
-
-        PartListing listPartsResponse = new PartListing();
-        List<PartSummary> partsSummary = new ArrayList<>();
         PartSummary partSummary1 = new PartSummary();
         partSummary1.setPartNumber(1);
         partSummary1.setETag("ETag1");
         partSummary1.setSize(1);
+        List<PartSummary> partsSummary = new ArrayList<>();
         partsSummary.add(partSummary1);
 
         PartSummary partSummary2 = new PartSummary();
@@ -98,7 +95,10 @@ public class ListPartsHandlerTest {
         partSummary2.setSize(2);
         partsSummary.add(partSummary2);
 
+        PartListing listPartsResponse = new PartListing();
         listPartsResponse.setParts(partsSummary);
+
+        AmazonS3 mockS3Client = mock(AmazonS3.class);
         when(mockS3Client.listParts(Mockito.any(ListPartsRequest.class))).thenReturn(listPartsResponse);
         ListPartsHandler listPartsHandler = new ListPartsHandler(environment, mockS3Client);
         final GatewayResponse response = listPartsHandler.handleRequest(requestInput, null);
@@ -276,15 +276,15 @@ public class ListPartsHandlerTest {
 
 
 
-        assertEquals(SAMPLE_ETAG, listPartsElement.getETag());
+        assertEquals(SAMPLE_ETAG, listPartsElement.getEtag());
         assertEquals(Integer.toString(SAMPLE_PART_NUMBER), listPartsElement.getPartNumber());
         assertEquals(Integer.toString(SAMPLE_SIZE), listPartsElement.getSize());
 
-        listPartsElement.setETag(SAMPLE_ETAG);
+        listPartsElement.setEtag(SAMPLE_ETAG);
         listPartsElement.setPartNumber(Integer.toString(SAMPLE_PART_NUMBER));
         listPartsElement.setSize(Integer.toString(SAMPLE_SIZE));
 
-        assertEquals(SAMPLE_ETAG, listPartsElement.getETag());
+        assertEquals(SAMPLE_ETAG, listPartsElement.getEtag());
         assertEquals(Integer.toString(SAMPLE_PART_NUMBER), listPartsElement.getPartNumber());
         assertEquals(Integer.toString(SAMPLE_SIZE), listPartsElement.getSize());
 
