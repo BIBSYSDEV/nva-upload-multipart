@@ -337,6 +337,7 @@ Resources:
       Handler: no.unit.nva.amazon.s3.ListPartsHandler::handleRequest
       Runtime: java8
       MemorySize: 512
+      Role: !GetAtt UploadExecutionRole.Arn
       Events:
         ListEvent:
           Type: Api
@@ -354,6 +355,7 @@ Resources:
       Handler: no.unit.nva.amazon.s3.PrepareUploadPartHandler::handleRequest
       Runtime: java8
       MemorySize: 512
+      Role: !GetAtt UploadExecutionRole.Arn
       Events:
         PrepareEvent:
           Type: Api
@@ -371,6 +373,7 @@ Resources:
       Handler: no.unit.nva.amazon.s3.AbortUploadPartHandler::handleRequest
       Runtime: java8
       MemorySize: 512
+      Role: !GetAtt UploadExecutionRole.Arn
       Events:
         AbortEvent:
           Type: Api
@@ -388,6 +391,7 @@ Resources:
       Handler: no.unit.nva.amazon.s3.CompleteUploadHandler::handleRequest
       Runtime: java8
       MemorySize: 512
+      Role: !GetAtt UploadExecutionRole.Arn
       Events:
         CompleteEvent:
           Type: Api
