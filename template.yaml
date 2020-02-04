@@ -315,7 +315,6 @@ Resources:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
-
       Handler: no.unit.nva.amazon.s3.CreateUploadHandler::handleRequest
       Runtime: java8
       MemorySize: 512
@@ -334,6 +333,7 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
+          ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.amazon.s3.ListPartsHandler::handleRequest
       Runtime: java8
       MemorySize: 512
@@ -352,6 +352,7 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
+          ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.amazon.s3.PrepareUploadPartHandler::handleRequest
       Runtime: java8
       MemorySize: 512
@@ -370,6 +371,7 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
+          ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.amazon.s3.AbortUploadPartHandler::handleRequest
       Runtime: java8
       MemorySize: 512
@@ -388,6 +390,7 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
+          ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.amazon.s3.CompleteUploadHandler::handleRequest
       Runtime: java8
       MemorySize: 512
