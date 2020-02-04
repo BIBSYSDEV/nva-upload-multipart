@@ -29,6 +29,7 @@ dependencies {
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.2.4'
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
     testImplementation 'commons-io:commons-io:2.6'
+    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
 
     shadowJar {
         archiveClassifier.set('')
@@ -80,7 +81,7 @@ jacocoTestCoverageVerification {
             limit {
                 counter = 'METHOD'
                 value = 'COVEREDRATIO'
-                minimum = 0.001
+                minimum = 0.900
             }
         }
 
@@ -88,7 +89,7 @@ jacocoTestCoverageVerification {
             limit {
                 counter = 'CLASS'
                 value = 'COVEREDRATIO'
-                minimum = 0.001
+                minimum = 0.900
             }
         }
     }

@@ -1,13 +1,7 @@
 package no.unit.nva.amazon.s3;
 
 import com.google.gson.JsonObject;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,9 +10,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class GatewayResponse {
 
-    public static final String CORS_ALLOW_ORIGIN_HEADER = "Access-Control-Allow-Origin";
+    public static final String ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
     public static final String EMPTY_JSON = "{}";
-    public static final transient String ERROR_KEY = "error";
+    public static final String BODY_KEY = "body";
+    public static final String ERROR_KEY = "error";
+
     private String body;
     private transient Map<String, String> headers;
     private int statusCode;
@@ -27,15 +23,15 @@ public class GatewayResponse {
      * GatewayResponse contains response status, response headers and body with payload resp. error messages.
      */
     public GatewayResponse() {
-        this.statusCode = Response.Status.INTERNAL_SERVER_ERROR.getStatusCode();
+        this.statusCode = 0;
         this.body = EMPTY_JSON;
-        this.generateDefaultHeaders();
+        this.headers = new ConcurrentHashMap<>();
     }
 
     /**
      * GatewayResponse convenience constructor to set response status and body with payload direct.
      */
-    public GatewayResponse(final String body, Map<String,String> headers, final int status) {
+    public GatewayResponse(final String body, Map<String, String> headers, final int status) {
         this.statusCode = status;
         this.body = body;
         this.headers = headers;
@@ -45,16 +41,20 @@ public class GatewayResponse {
         return body;
     }
 
+    public void setBody(String body) {
+        this.body = body;
+    }
+
     public Map<String, String> getHeaders() {
         return headers;
     }
 
-    public int getStatusCode() {
-        return statusCode;
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
     }
 
-    public void setBody(String body) {
-        this.body = body;
+    public int getStatusCode() {
+        return statusCode;
     }
 
     public void setStatusCode(int status) {
@@ -72,15 +72,6 @@ public class GatewayResponse {
         this.body = json.toString();
     }
 
-    private void generateDefaultHeaders() {
-        Map<String, String> headers = new ConcurrentHashMap<>();
-        headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-        final String corsAllowDomain = Config.getInstance().getCorsHeader();
-        if (StringUtils.isNotEmpty(corsAllowDomain)) {
-            headers.put(CORS_ALLOW_ORIGIN_HEADER, corsAllowDomain);
-        }
-        this.headers = Collections.unmodifiableMap(new HashMap<>(headers));
-    }
 
     @Override
     public String toString() {

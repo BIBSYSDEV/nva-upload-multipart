@@ -6,11 +6,10 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
+import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,18 +22,19 @@ import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
+public class AbortMultipartUploadHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
 
-
-public class PrepareUploadPartHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
 
     public static final String ALLOWED_ORIGIN_KEY = "ALLOWED_ORIGIN";
+    public static final String AWS_REGION_KEY = "AWS_REGION";
     public static final String S3_UPLOAD_BUCKET_KEY = "S3_UPLOAD_BUCKET";
 
+    //    public final transient String clientRegion;
     public final transient String bucketName;
     private final transient String allowedOrigin;
     private final transient AmazonS3 s3Client;
 
-    public PrepareUploadPartHandler() {
+    public AbortMultipartUploadHandler() {
         this(new Environment(), createAmazonS3Client());
     }
 
@@ -42,7 +42,7 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
     /**
      * Construct for lambda eventhandler to create an upload request for S3.
      */
-    public PrepareUploadPartHandler(Environment environment, AmazonS3 s3Client) {
+    public AbortMultipartUploadHandler(Environment environment, AmazonS3 s3Client) {
         this.allowedOrigin = environment.get(ALLOWED_ORIGIN_KEY).orElseThrow(IllegalStateException::new);
         this.bucketName = environment.get(S3_UPLOAD_BUCKET_KEY).orElseThrow(IllegalStateException::new);
         this.s3Client = s3Client;
@@ -60,7 +60,7 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
         response.setHeaders(headers());
 
 
-        PrepareUploadPartRequestBody requestBody = null;
+        AbortMultipartUploadRequestBody requestBody = null;
         try {
             requestBody = checkParameters(input);
         } catch (JsonSyntaxException | ParameterMissingException e) {
@@ -75,19 +75,12 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
             return response;
         }
 
+        AbortMultipartUploadRequest abortMultipartUploadRequest =
+                new AbortMultipartUploadRequest(bucketName, requestBody.key, requestBody.uploadId);
+
         try {
-
-
-            GeneratePresignedUrlRequest predesignedUrlUploadRequest =
-                    new GeneratePresignedUrlRequest(bucketName, requestBody.key);
-            predesignedUrlUploadRequest.addRequestParameter("uploadId", requestBody.uploadId);
-            predesignedUrlUploadRequest.addRequestParameter("partNumber", requestBody.number);
-
-            URL predesignedUloadUrl = s3Client.generatePresignedUrl(predesignedUrlUploadRequest);
-
-
-            System.out.println(predesignedUloadUrl);
-            response.setBody(new Gson().toJson(predesignedUloadUrl));
+            s3Client.abortMultipartUpload(abortMultipartUploadRequest);
+            response.setBody("Multipart Upload aborted");
             response.setStatusCode(SC_OK);
             System.out.println(response);
         } catch (SdkClientException e) {
@@ -103,12 +96,17 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
         return response;
     }
 
-    public PrepareUploadPartRequestBody checkParameters(Map<String, Object> input) {
+    /**
+     * Checks parameters for abortint multipart upload.
+     * @param input Map with parameters from API-gateway
+     * @return POJO with extracted parameters
+     */
+    public AbortMultipartUploadRequestBody checkParameters(Map<String, Object> input) {
         if (Objects.isNull(input)) {
             throw new ParameterMissingException("input");
         }
         String body = (String) input.get(BODY_KEY);
-        PrepareUploadPartRequestBody requestBody = new Gson().fromJson(body, PrepareUploadPartRequestBody.class);
+        AbortMultipartUploadRequestBody requestBody = new Gson().fromJson(body, AbortMultipartUploadRequestBody.class);
         if (Objects.isNull(requestBody)) {
             throw new ParameterMissingException("input");
         }
@@ -117,9 +115,6 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
         }
         if (Objects.isNull(requestBody.key)) {
             throw new ParameterMissingException("key");
-        }
-        if (Objects.isNull(requestBody.number)) {
-            throw new ParameterMissingException("number");
         }
         return requestBody;
     }
@@ -132,3 +127,4 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
     }
 
 }
+
