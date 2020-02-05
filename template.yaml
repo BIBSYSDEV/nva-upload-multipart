@@ -207,7 +207,6 @@ Resources:
                 - filename
                 - size
 
-
             listPartsRequestBody:
               title: List parts already uploaded
               type: object

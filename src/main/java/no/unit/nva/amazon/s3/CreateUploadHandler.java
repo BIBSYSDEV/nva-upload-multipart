@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
 import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
 import static no.unit.nva.amazon.s3.GatewayResponse.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_CREATED;
@@ -30,6 +29,9 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
 
 
     private static final AmazonS3 s3Client = createAmazonS3Client();
+    public static final String PARAMETER_BODY_KEY = "body";
+    public static final String PARAMETER_FILENAME_KEY = "filename";
+    public static final String PARAMETER_INPUT_KEY = "input";
 
     public final transient String bucketName;
     private final transient String allowedOrigin;
@@ -130,15 +132,15 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
      */
     public CreateUploadRequestBody checkParameters(Map<String, Object> input) {
         if (Objects.isNull(input)) {
-            throw new ParameterMissingException("input");
+            throw new ParameterMissingException(PARAMETER_INPUT_KEY);
         }
-        String body = (String) input.get(BODY_KEY);
+        String body = (String) input.get(PARAMETER_BODY_KEY);
         CreateUploadRequestBody requestBody = new Gson().fromJson(body, CreateUploadRequestBody.class);
         if (Objects.isNull(requestBody)) {
-            throw new ParameterMissingException("input");
+            throw new ParameterMissingException(PARAMETER_BODY_KEY);
         }
         if (Objects.isNull(requestBody.filename)) {
-            throw new ParameterMissingException("filename");
+            throw new ParameterMissingException(PARAMETER_FILENAME_KEY);
         }
         return requestBody;
     }

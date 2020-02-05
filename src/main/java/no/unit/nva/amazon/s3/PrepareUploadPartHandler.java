@@ -27,9 +27,15 @@ import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 
-
 public class PrepareUploadPartHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
 
+
+    public static final String PARAMETER_UPLOAD_ID_KEY = "uploadId";
+    public static final String PARAMETER_PART_NUMBER_KEY = "partNumber";
+    public static final String PARAMETER_INPUT_KEY = "input";
+    public static final String PARAMETER_BODY_KEY = "body";
+    public static final String PARAMETER_KEY_KEY = "key";
+    public static final String PARAMETER_NUMBER_KEY = "number";
 
     public final transient String bucketName;
     private final transient String allowedOrigin;
@@ -82,8 +88,8 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
             GeneratePresignedUrlRequest predesignedUrlUploadRequest =
                     new GeneratePresignedUrlRequest(bucketName, requestBody.key)
                             .withMethod(HttpMethod.PUT);
-            predesignedUrlUploadRequest.addRequestParameter("uploadId", requestBody.uploadId);
-            predesignedUrlUploadRequest.addRequestParameter("partNumber", requestBody.number);
+            predesignedUrlUploadRequest.addRequestParameter(PARAMETER_UPLOAD_ID_KEY, requestBody.uploadId);
+            predesignedUrlUploadRequest.addRequestParameter(PARAMETER_PART_NUMBER_KEY, requestBody.number);
 
             URL predesignedUloadUrl = s3Client.generatePresignedUrl(predesignedUrlUploadRequest);
 
@@ -107,26 +113,27 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
 
     /**
      * Checks incoming parameters from api-gateway.
+     *
      * @param input MAp of parameters from api-gateway
      * @return POJO with checked parameters
      */
     public PrepareUploadPartRequestBody checkParameters(Map<String, Object> input) {
         if (Objects.isNull(input)) {
-            throw new ParameterMissingException("input");
+            throw new ParameterMissingException(PARAMETER_INPUT_KEY);
         }
         String body = (String) input.get(BODY_KEY);
         PrepareUploadPartRequestBody requestBody = new Gson().fromJson(body, PrepareUploadPartRequestBody.class);
         if (Objects.isNull(requestBody)) {
-            throw new ParameterMissingException("input");
+            throw new ParameterMissingException(PARAMETER_BODY_KEY);
         }
         if (Objects.isNull(requestBody.uploadId)) {
-            throw new ParameterMissingException("uploadId");
+            throw new ParameterMissingException(PARAMETER_UPLOAD_ID_KEY);
         }
         if (Objects.isNull(requestBody.key)) {
-            throw new ParameterMissingException("key");
+            throw new ParameterMissingException(PARAMETER_KEY_KEY);
         }
         if (Objects.isNull(requestBody.number)) {
-            throw new ParameterMissingException("number");
+            throw new ParameterMissingException(PARAMETER_NUMBER_KEY);
         }
         return requestBody;
     }

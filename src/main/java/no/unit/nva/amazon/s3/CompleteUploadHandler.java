@@ -30,6 +30,13 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 public class CompleteUploadHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
 
 
+    public static final String UPLOAD_COMPLETE_MESSAGE = "Upload Complete";
+    public static final String PARAMETER_INPUT_KEY = "input";
+    public static final String PARAMETER_BODY_KEY = "body";
+    public static final String PARAMETER_KEY_KEY = "key";
+    public static final String PARAMETER_UPLOAD_ID_KEY = "uploadId";
+    public static final String PARAMETER_PART_E_TAGS_KEY = "partETags";
+
     public final transient String bucketName;
     private final transient String allowedOrigin;
     private final transient AmazonS3 s3Client;
@@ -40,7 +47,7 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
 
 
     /**
-     * Construct for lambda eventhandler to create an upload request for S3.
+     * Construct for lambda event handler to create an upload request for S3.
      */
     public CompleteUploadHandler(Environment environment, AmazonS3 s3Client) {
         this.allowedOrigin = environment.get(ALLOWED_ORIGIN_KEY).orElseThrow(IllegalStateException::new);
@@ -90,7 +97,7 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
             CompleteMultipartUploadResult uploadResult =
                     s3Client.completeMultipartUpload(completeMultipartUploadRequest);
             System.out.println(uploadResult);
-            response.setBody("Upload Complete");
+            response.setBody(UPLOAD_COMPLETE_MESSAGE);
             response.setStatusCode(SC_OK);
             System.out.println(response);
         } catch (SdkClientException e) {
@@ -114,22 +121,22 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
      */
     public CompleteUploadRequestBody checkParameters(Map<String, Object> input) {
         if (Objects.isNull(input)) {
-            throw new ParameterMissingException("input");
+            throw new ParameterMissingException(PARAMETER_INPUT_KEY);
         }
         String body = (String) input.get(BODY_KEY);
         System.out.println("incoming request: " + body);
         CompleteUploadRequestBody requestBody = new Gson().fromJson(body, CompleteUploadRequestBody.class);
         if (Objects.isNull(requestBody)) {
-            throw new ParameterMissingException("input");
+            throw new ParameterMissingException(PARAMETER_BODY_KEY);
         }
         if (Objects.isNull(requestBody.key)) {
-            throw new ParameterMissingException("key");
+            throw new ParameterMissingException(PARAMETER_KEY_KEY);
         }
         if (Objects.isNull(requestBody.uploadId)) {
-            throw new ParameterMissingException("uploadId");
+            throw new ParameterMissingException(PARAMETER_UPLOAD_ID_KEY);
         }
         if (Objects.isNull(requestBody.parts)) {
-            throw new ParameterMissingException("partETags");
+            throw new ParameterMissingException(PARAMETER_PART_E_TAGS_KEY);
         }
         return requestBody;
     }

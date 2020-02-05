@@ -27,6 +27,11 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 public class AbortMultipartUploadHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
 
 
+    public static final String MULTIPART_UPLOAD_ABORTED_MESSAGE = "Multipart Upload aborted";
+    public static final String PARAMETER_INPUT_KEY = "input";
+    public static final String PARAMETER_BODY_KEY = "body";
+    public static final String PARAMETER_UPLOAD_ID_KEY = "uploadId";
+    public static final String PARAMETER_KEY_KEY = "key";
 
     public final transient String bucketName;
     private final transient String allowedOrigin;
@@ -35,7 +40,6 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
     public AbortMultipartUploadHandler() {
         this(new Environment(), createAmazonS3Client());
     }
-
 
     /**
      * Construct for lambda eventhandler to create an upload request for S3.
@@ -78,7 +82,7 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
 
         try {
             s3Client.abortMultipartUpload(abortMultipartUploadRequest);
-            response.setBody("Multipart Upload aborted");
+            response.setBody(MULTIPART_UPLOAD_ABORTED_MESSAGE);
             response.setStatusCode(SC_OK);
             System.out.println(response);
         } catch (SdkClientException e) {
@@ -96,23 +100,24 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
 
     /**
      * Checks parameters for abortint multipart upload.
+     *
      * @param input Map with parameters from API-gateway
      * @return POJO with extracted parameters
      */
     public AbortMultipartUploadRequestBody checkParameters(Map<String, Object> input) {
         if (Objects.isNull(input)) {
-            throw new ParameterMissingException("input");
+            throw new ParameterMissingException(PARAMETER_INPUT_KEY);
         }
         String body = (String) input.get(BODY_KEY);
         AbortMultipartUploadRequestBody requestBody = new Gson().fromJson(body, AbortMultipartUploadRequestBody.class);
         if (Objects.isNull(requestBody)) {
-            throw new ParameterMissingException("input");
+            throw new ParameterMissingException(PARAMETER_BODY_KEY);
         }
         if (Objects.isNull(requestBody.uploadId)) {
-            throw new ParameterMissingException("uploadId");
+            throw new ParameterMissingException(PARAMETER_UPLOAD_ID_KEY);
         }
         if (Objects.isNull(requestBody.key)) {
-            throw new ParameterMissingException("key");
+            throw new ParameterMissingException(PARAMETER_KEY_KEY);
         }
         return requestBody;
     }
