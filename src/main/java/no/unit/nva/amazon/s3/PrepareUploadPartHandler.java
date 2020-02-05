@@ -1,6 +1,7 @@
 package no.unit.nva.amazon.s3;
 
 
+import com.amazonaws.HttpMethod;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -79,7 +80,8 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
 
 
             GeneratePresignedUrlRequest predesignedUrlUploadRequest =
-                    new GeneratePresignedUrlRequest(bucketName, requestBody.key);
+                    new GeneratePresignedUrlRequest(bucketName, requestBody.key)
+                            .withMethod(HttpMethod.PUT);
             predesignedUrlUploadRequest.addRequestParameter("uploadId", requestBody.uploadId);
             predesignedUrlUploadRequest.addRequestParameter("partNumber", requestBody.number);
 
