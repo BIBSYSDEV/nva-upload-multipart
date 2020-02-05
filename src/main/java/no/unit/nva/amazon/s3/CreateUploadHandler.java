@@ -111,6 +111,7 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
 
     private ObjectMetadata getObjectMetadata(CreateUploadRequestBody requestBody) {
         ObjectMetadata objectMetadata = new ObjectMetadata();
+        objectMetadata.setContentMD5(null);
 
         if (requestBody.filename != null && !requestBody.filename.isEmpty()) {
             objectMetadata.setContentDisposition("filename=\"" + requestBody.filename + "\"");
@@ -119,9 +120,9 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
             objectMetadata.setContentType(requestBody.mimetype);
         }
 
-        if (requestBody.md5hash != null && !requestBody.md5hash.isEmpty()) {
-            objectMetadata.setContentMD5(requestBody.md5hash);
-        }
+//        if (requestBody.md5hash != null && !requestBody.md5hash.isEmpty()) {
+//            objectMetadata.setContentMD5(requestBody.md5hash);
+//        }
         return objectMetadata;
     }
 

@@ -206,7 +206,7 @@ Resources:
               required:
                 - filename
                 - size
-                - md5hash
+
 
             listPartsRequestBody:
               title: List parts already uploaded
