@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
+import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
 import static no.unit.nva.amazon.s3.GatewayResponse.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
@@ -28,8 +30,6 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 public class PrepareUploadPartHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
 
-    public static final String ALLOWED_ORIGIN_KEY = "ALLOWED_ORIGIN";
-    public static final String S3_UPLOAD_BUCKET_KEY = "S3_UPLOAD_BUCKET";
 
     public final transient String bucketName;
     private final transient String allowedOrigin;

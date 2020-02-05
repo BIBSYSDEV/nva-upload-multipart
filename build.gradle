@@ -22,14 +22,13 @@ dependencies {
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.6'
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.29'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.12.1'
-    implementation 'com.amazonaws:aws-lambda-java-core:1.2.0'
-    implementation 'com.amazonaws:aws-java-sdk-s3:1.11.714'
+    implementation group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.0'
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.11.715'
 
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.5.2'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.2.4'
-    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
-    testImplementation 'commons-io:commons-io:2.6'
-    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
+    testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
+    testImplementation group: 'commons-io', name: 'commons-io', version: '2.6'
 
     shadowJar {
         archiveClassifier.set('')

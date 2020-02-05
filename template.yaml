@@ -382,7 +382,7 @@ Resources:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
-      Handler: no.unit.nva.amazon.s3.AbortUploadPartHandler::handleRequest
+      Handler: no.unit.nva.amazon.s3.AbortMultipartUploadHandler::handleRequest
       Runtime: java8
       MemorySize: 512
       Role: !GetAtt UploadExecutionRole.Arn

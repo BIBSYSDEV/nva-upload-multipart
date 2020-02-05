@@ -2,10 +2,6 @@ package no.unit.nva.amazon.s3;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
-import com.amazonaws.services.s3.model.ListPartsRequest;
 import com.google.gson.Gson;
 import org.junit.Before;
 import org.junit.Rule;
@@ -17,19 +13,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static no.unit.nva.amazon.s3.AbortMultipartUploadHandler.ALLOWED_ORIGIN_KEY;
-import static no.unit.nva.amazon.s3.AbortMultipartUploadHandler.AWS_REGION_KEY;
-import static no.unit.nva.amazon.s3.AbortMultipartUploadHandler.S3_UPLOAD_BUCKET_KEY;
+import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
+import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
 import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
-import static org.apache.http.HttpStatus.SC_CREATED;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @SuppressWarnings({"checkstyle:javadoctype", "checkstyle:MissingJavadocMethod"})
 public class AbortMultipartUploadHandlerTest {
@@ -44,7 +37,6 @@ public class AbortMultipartUploadHandlerTest {
     public void setUp() {
         environment = mock(Environment.class);
         Mockito.when(environment.get(ALLOWED_ORIGIN_KEY)).thenReturn(Optional.of(ALLOWED_ORIGIN_KEY));
-        Mockito.when(environment.get(AWS_REGION_KEY)).thenReturn(Optional.of(AWS_REGION_KEY));
         Mockito.when(environment.get(S3_UPLOAD_BUCKET_KEY)).thenReturn(Optional.of(S3_UPLOAD_BUCKET_KEY));
     }
 
@@ -55,7 +47,6 @@ public class AbortMultipartUploadHandlerTest {
     @Test
     public void testDefaultConstructor() {
         environmentVariables.set(ALLOWED_ORIGIN_KEY,ALLOWED_ORIGIN_KEY);
-        environmentVariables.set(AWS_REGION_KEY,AWS_REGION_KEY);
         environmentVariables.set(S3_UPLOAD_BUCKET_KEY,S3_UPLOAD_BUCKET_KEY);
         AbortMultipartUploadHandler abortMultipartUploadHandler = new AbortMultipartUploadHandler();
         assertNotNull(abortMultipartUploadHandler);

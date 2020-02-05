@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
+import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
 import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
-import static no.unit.nva.amazon.s3.CompleteUploadHandler.ALLOWED_ORIGIN_KEY;
-import static no.unit.nva.amazon.s3.CompleteUploadHandler.S3_UPLOAD_BUCKET_KEY;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.apache.http.HttpStatus.SC_OK;

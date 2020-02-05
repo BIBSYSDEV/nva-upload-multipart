@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
+import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
 import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
-import static no.unit.nva.amazon.s3.ListPartsHandler.ALLOWED_ORIGIN_KEY;
-import static no.unit.nva.amazon.s3.ListPartsHandler.S3_UPLOAD_BUCKET_KEY;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.apache.http.HttpStatus.SC_OK;
@@ -273,7 +273,6 @@ public class ListPartsHandlerTest {
         partSummary.setSize(SAMPLE_SIZE);
 
         final ListPartsElement listPartsElement = new ListPartsElement(partSummary);
-
 
 
         assertEquals(SAMPLE_ETAG, listPartsElement.getEtag());

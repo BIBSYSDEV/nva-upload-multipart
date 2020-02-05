@@ -16,6 +16,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
+import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
 import static no.unit.nva.amazon.s3.GatewayResponse.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
@@ -27,9 +29,6 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 public class CreateUploadHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
 
 
-    public static final String ALLOWED_ORIGIN_KEY = "ALLOWED_ORIGIN";
-    public static final String AWS_REGION_KEY = "AWS_REGION";
-    public static final String S3_UPLOAD_BUCKET_KEY = "S3_UPLOAD_BUCKET";
     private static final AmazonS3 s3Client = createAmazonS3Client();
 
     public final transient String bucketName;

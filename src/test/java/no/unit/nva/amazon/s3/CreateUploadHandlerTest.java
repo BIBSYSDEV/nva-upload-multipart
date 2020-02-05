@@ -15,9 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static no.unit.nva.amazon.s3.CreateUploadHandler.ALLOWED_ORIGIN_KEY;
-import static no.unit.nva.amazon.s3.CreateUploadHandler.AWS_REGION_KEY;
-import static no.unit.nva.amazon.s3.CreateUploadHandler.S3_UPLOAD_BUCKET_KEY;
+import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
+import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
 import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_CREATED;
@@ -39,7 +38,6 @@ public class CreateUploadHandlerTest {
     public void setUp() {
         environment = mock(Environment.class);
         Mockito.when(environment.get(ALLOWED_ORIGIN_KEY)).thenReturn(Optional.of(ALLOWED_ORIGIN_KEY));
-        Mockito.when(environment.get(AWS_REGION_KEY)).thenReturn(Optional.of(AWS_REGION_KEY));
         Mockito.when(environment.get(S3_UPLOAD_BUCKET_KEY)).thenReturn(Optional.of(S3_UPLOAD_BUCKET_KEY));
     }
 
@@ -50,7 +48,6 @@ public class CreateUploadHandlerTest {
     @Test
     public void testDefaultConstructor() {
         environmentVariables.set(ALLOWED_ORIGIN_KEY,ALLOWED_ORIGIN_KEY);
-        environmentVariables.set(AWS_REGION_KEY,AWS_REGION_KEY);
         environmentVariables.set(S3_UPLOAD_BUCKET_KEY,S3_UPLOAD_BUCKET_KEY);
         CreateUploadHandler createUploadHandler = new CreateUploadHandler();
         assertNotNull(createUploadHandler);

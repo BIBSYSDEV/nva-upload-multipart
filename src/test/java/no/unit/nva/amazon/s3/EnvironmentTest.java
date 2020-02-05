@@ -8,9 +8,6 @@ import org.mockito.Mockito;
 
 import java.util.Optional;
 
-import static no.unit.nva.amazon.s3.AbortMultipartUploadHandler.ALLOWED_ORIGIN_KEY;
-import static no.unit.nva.amazon.s3.AbortMultipartUploadHandler.AWS_REGION_KEY;
-import static no.unit.nva.amazon.s3.AbortMultipartUploadHandler.S3_UPLOAD_BUCKET_KEY;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
