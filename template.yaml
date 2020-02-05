@@ -266,7 +266,7 @@ Resources:
                 key:
                   type: string
                   description: Identifier (UUID) of the uploaded file, object key in the S3 bucket
-                partETags:
+                parts:
                   type: array
                   description:  list of part numbers and ETags that identify the individual parts of the upload
                   items:

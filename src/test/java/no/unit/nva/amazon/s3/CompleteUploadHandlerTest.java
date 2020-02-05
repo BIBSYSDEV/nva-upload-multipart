@@ -53,9 +53,9 @@ public class CompleteUploadHandlerTest {
         CompleteUploadRequestBody requestInputBody = new CompleteUploadRequestBody();
         requestInputBody.key = "key";
         requestInputBody.uploadId = "uploadId";
-        List<PartETag> partEtags = new ArrayList<>();
-        partEtags.add(new PartETag(1,"eTag1"));
-        requestInputBody.partETags = partEtags;
+        List<CompleteUploadPart> partEtags = new ArrayList<>();
+        partEtags.add(new CompleteUploadPart("1","eTag1"));
+        requestInputBody.parts = partEtags;
 
         return requestInputBody;
     }
@@ -198,7 +198,7 @@ public class CompleteUploadHandlerTest {
     public void testHandleFailingRequestMissingParameterNumber() {
 
         CompleteUploadRequestBody requestInputBody = createRequestBody();
-        requestInputBody.partETags = null;
+        requestInputBody.parts = null;
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));

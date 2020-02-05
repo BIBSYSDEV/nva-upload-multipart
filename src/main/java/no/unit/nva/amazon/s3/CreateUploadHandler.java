@@ -120,9 +120,6 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
             objectMetadata.setContentType(requestBody.mimetype);
         }
 
-//        if (requestBody.md5hash != null && !requestBody.md5hash.isEmpty()) {
-//            objectMetadata.setContentMD5(requestBody.md5hash);
-//        }
         return objectMetadata;
     }
 

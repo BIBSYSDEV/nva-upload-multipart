@@ -7,9 +7,12 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadResult;
+import com.amazonaws.services.s3.model.PartETag;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -53,6 +56,7 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
                 .build();
     }
 
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     @Override
     public GatewayResponse handleRequest(Map<String, Object> input, Context context) {
 
@@ -80,8 +84,12 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
             completeMultipartUploadRequest.setBucketName(bucketName);
             completeMultipartUploadRequest.setKey(requestBody.key);
             completeMultipartUploadRequest.setUploadId(requestBody.uploadId);
-            completeMultipartUploadRequest.setPartETags(requestBody.partETags);
-
+            List<PartETag> partETags = new ArrayList<>();
+            for (CompleteUploadPart part : requestBody.parts) {
+                PartETag partETag = new PartETag(Integer.parseInt(part.getPartNumber()), part.getEtag());
+                partETags.add(partETag);
+            }
+            completeMultipartUploadRequest.setPartETags(partETags);
             CompleteMultipartUploadResult uploadResult =
                     s3Client.completeMultipartUpload(completeMultipartUploadRequest);
             System.out.println(uploadResult);
@@ -103,6 +111,7 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
 
     /**
      * Checking inputparameters from api-gateway.
+     *
      * @param input Map with parameters from api-gateway
      * @return POJO with requestparameters
      */
@@ -111,7 +120,7 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
             throw new ParameterMissingException("input");
         }
         String body = (String) input.get(BODY_KEY);
-        System.out.println("incoming request: "+body);
+        System.out.println("incoming request: " + body);
         CompleteUploadRequestBody requestBody = new Gson().fromJson(body, CompleteUploadRequestBody.class);
         if (Objects.isNull(requestBody)) {
             throw new ParameterMissingException("input");
@@ -122,7 +131,7 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
         if (Objects.isNull(requestBody.uploadId)) {
             throw new ParameterMissingException("uploadId");
         }
-        if (Objects.isNull(requestBody.partETags)) {
+        if (Objects.isNull(requestBody.parts)) {
             throw new ParameterMissingException("partETags");
         }
         return requestBody;
