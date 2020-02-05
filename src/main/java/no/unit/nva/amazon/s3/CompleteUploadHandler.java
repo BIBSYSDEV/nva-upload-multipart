@@ -111,6 +111,7 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
             throw new ParameterMissingException("input");
         }
         String body = (String) input.get(BODY_KEY);
+        System.out.println("incoming request: "+body);
         CompleteUploadRequestBody requestBody = new Gson().fromJson(body, CompleteUploadRequestBody.class);
         if (Objects.isNull(requestBody)) {
             throw new ParameterMissingException("input");
