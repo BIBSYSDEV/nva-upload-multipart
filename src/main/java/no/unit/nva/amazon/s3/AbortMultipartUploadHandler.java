@@ -35,24 +35,27 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
 
     public final transient String bucketName;
     private final transient String allowedOrigin;
-    private final transient AmazonS3 s3Client;
+    private static final AmazonS3 s3Client = createAmazonS3Client();
 
     public AbortMultipartUploadHandler() {
-        this(new Environment(), createAmazonS3Client());
+        this(new Environment());
     }
 
     /**
      * Construct for lambda eventhandler to create an upload request for S3.
      */
-    public AbortMultipartUploadHandler(Environment environment, AmazonS3 s3Client) {
+    public AbortMultipartUploadHandler(Environment environment) {
         this.allowedOrigin = environment.get(ALLOWED_ORIGIN_KEY).orElseThrow(IllegalStateException::new);
         this.bucketName = environment.get(S3_UPLOAD_BUCKET_KEY).orElseThrow(IllegalStateException::new);
-        this.s3Client = s3Client;
     }
 
     public static AmazonS3 createAmazonS3Client() {
         return AmazonS3ClientBuilder.standard()
                 .build();
+    }
+
+    public  AmazonS3 getS3Client() {
+        return s3Client;
     }
 
     @Override
@@ -81,7 +84,7 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
                 new AbortMultipartUploadRequest(bucketName, requestBody.key, requestBody.uploadId);
 
         try {
-            s3Client.abortMultipartUpload(abortMultipartUploadRequest);
+            getS3Client().abortMultipartUpload(abortMultipartUploadRequest);
             response.setBody(MULTIPART_UPLOAD_ABORTED_MESSAGE);
             response.setStatusCode(SC_OK);
             System.out.println(response);

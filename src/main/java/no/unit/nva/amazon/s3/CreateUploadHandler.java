@@ -28,13 +28,13 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 public class CreateUploadHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
 
 
-    private static final AmazonS3 s3Client = createAmazonS3Client();
     public static final String PARAMETER_BODY_KEY = "body";
     public static final String PARAMETER_FILENAME_KEY = "filename";
     public static final String PARAMETER_INPUT_KEY = "input";
 
     public final transient String bucketName;
     private final transient String allowedOrigin;
+    private static final AmazonS3 s3Client = createAmazonS3Client();
 
 
     public CreateUploadHandler() {
