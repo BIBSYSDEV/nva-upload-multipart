@@ -30,29 +30,33 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
     public static final String ALLOWED_ORIGIN_KEY = "ALLOWED_ORIGIN";
     public static final String AWS_REGION_KEY = "AWS_REGION";
     public static final String S3_UPLOAD_BUCKET_KEY = "S3_UPLOAD_BUCKET";
+    private static final AmazonS3 s3Client = createAmazonS3Client();
 
-    //    public final transient String clientRegion;
     public final transient String bucketName;
     private final transient String allowedOrigin;
-    private final transient AmazonS3 s3Client;
+
 
     public CreateUploadHandler() {
-        this(new Environment(), createAmazonS3Client());
+        this(new Environment());
     }
 
 
     /**
      * Construct for lambda eventhandler to create an upload request for S3.
      */
-    public CreateUploadHandler(Environment environment, AmazonS3 s3Client) {
+    public CreateUploadHandler(Environment environment) {
         this.allowedOrigin = environment.get(ALLOWED_ORIGIN_KEY).orElseThrow(IllegalStateException::new);
         this.bucketName = environment.get(S3_UPLOAD_BUCKET_KEY).orElseThrow(IllegalStateException::new);
-        this.s3Client = s3Client;
+
     }
 
     public static AmazonS3 createAmazonS3Client() {
         return AmazonS3ClientBuilder.standard()
                 .build();
+    }
+
+    public  AmazonS3 getS3Client() {
+        return s3Client;
     }
 
     @Override
@@ -84,7 +88,7 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
                 new InitiateMultipartUploadRequest(bucketName, keyName, objectMetadata);
 
         try {
-            InitiateMultipartUploadResult initResponse = s3Client.initiateMultipartUpload(initRequest);
+            InitiateMultipartUploadResult initResponse = getS3Client().initiateMultipartUpload(initRequest);
             System.out.println(initResponse);
             CreateUploadResponseBody responseBody = new CreateUploadResponseBody();
             responseBody.uploadId = initResponse.getUploadId();
@@ -123,6 +127,7 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
 
     /**
      * Checking incoming parameters from api-gateway.
+     *
      * @param input Map of parameters from api-gateway
      * @return POJO with parameters from api-gateway
      */

@@ -61,7 +61,7 @@ public class CreateUploadHandlerTest {
     public void testHandleRequestMissingParameters() {
         Map<String, Object> requestInput = new HashMap<>();
 
-        CreateUploadHandler createUploadHandler = new CreateUploadHandler(environment, null);
+        CreateUploadHandler createUploadHandler = new CreateUploadHandler(environment);
         final GatewayResponse response = createUploadHandler.handleRequest(requestInput, null);
 
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
@@ -82,7 +82,8 @@ public class CreateUploadHandlerTest {
         createUploadResponse.setUploadId("uploadId");
         when(mockS3Client.initiateMultipartUpload(Mockito.any(InitiateMultipartUploadRequest.class)))
                 .thenReturn(createUploadResponse);
-        CreateUploadHandler createUploadHandler = new CreateUploadHandler(environment, mockS3Client);
+        CreateUploadHandler createUploadHandler = Mockito.spy(new CreateUploadHandler(environment));
+        Mockito.doReturn(mockS3Client).when(createUploadHandler).getS3Client();
         final GatewayResponse response = createUploadHandler.handleRequest(requestInput, null);
 
 
@@ -111,7 +112,8 @@ public class CreateUploadHandlerTest {
         SdkClientException sdkClientException = new SdkClientException("mock-exception");
         when(mockS3Client.initiateMultipartUpload(Mockito.any(InitiateMultipartUploadRequest.class)))
                 .thenThrow(sdkClientException);
-        CreateUploadHandler createUploadHandler = new CreateUploadHandler(environment, mockS3Client);
+        CreateUploadHandler createUploadHandler = Mockito.spy(new CreateUploadHandler(environment));
+        Mockito.doReturn(mockS3Client).when(createUploadHandler).getS3Client();
         final GatewayResponse response = createUploadHandler.handleRequest(requestInput, null);
 
 
@@ -129,7 +131,8 @@ public class CreateUploadHandlerTest {
         ParameterMissingException  parameterMissingException = new ParameterMissingException("mock-exception");
         when(mockS3Client.initiateMultipartUpload(Mockito.any(InitiateMultipartUploadRequest.class)))
                 .thenThrow(parameterMissingException);
-        CreateUploadHandler createUploadHandler = new CreateUploadHandler(environment, mockS3Client);
+        CreateUploadHandler createUploadHandler = Mockito.spy(new CreateUploadHandler(environment));
+        Mockito.doReturn(mockS3Client).when(createUploadHandler).getS3Client();
         final GatewayResponse response = createUploadHandler.handleRequest(null, null);
 
 
@@ -156,7 +159,8 @@ public class CreateUploadHandlerTest {
         SdkClientException sdkClientException = new SdkClientException("mock-exception");
         when(mockS3Client.initiateMultipartUpload(Mockito.any(InitiateMultipartUploadRequest.class)))
                 .thenThrow(sdkClientException);
-        CreateUploadHandler createUploadHandler = new CreateUploadHandler(environment, mockS3Client);
+        CreateUploadHandler createUploadHandler = Mockito.spy(new CreateUploadHandler(environment));
+        Mockito.doReturn(mockS3Client).when(createUploadHandler).getS3Client();
         final GatewayResponse response = createUploadHandler.handleRequest(requestInput, null);
 
 
@@ -177,7 +181,7 @@ public class CreateUploadHandlerTest {
         Exception unmappedRuntimeException  = new RuntimeException("unmapped-mock-exception");
         when(mockS3Client.initiateMultipartUpload(Mockito.any(InitiateMultipartUploadRequest.class)))
                 .thenThrow(unmappedRuntimeException);
-        CreateUploadHandler spyUploadHandler = Mockito.spy(new CreateUploadHandler(environment, mockS3Client));
+        CreateUploadHandler spyUploadHandler = Mockito.spy(new CreateUploadHandler(environment));
         Mockito.doThrow(unmappedRuntimeException).when(spyUploadHandler).checkParameters(Mockito.anyMap());
         final GatewayResponse response = spyUploadHandler.handleRequest(requestInput, null);
 
@@ -186,8 +190,6 @@ public class CreateUploadHandlerTest {
         assertEquals(SC_INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
     }
-
-
 
 
     @Test
@@ -205,7 +207,7 @@ public class CreateUploadHandlerTest {
         Exception janClientException = new RuntimeException("mock-jan-exception");
         when(mockS3Client.initiateMultipartUpload(Mockito.any(InitiateMultipartUploadRequest.class)))
                 .thenThrow(janClientException);
-        CreateUploadHandler createUploadHandler = new CreateUploadHandler(environment, mockS3Client);
+        CreateUploadHandler createUploadHandler = new CreateUploadHandler(environment);
         final GatewayResponse response = createUploadHandler.handleRequest(requestInput, null);
 
         assertNotNull(response);
