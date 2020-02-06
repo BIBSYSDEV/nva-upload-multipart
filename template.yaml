@@ -26,7 +26,6 @@ Parameters:
     Description: S3 Bucket to upload files to
 
 Resources:
-
   UploadApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -55,7 +54,6 @@ Resources:
                 responses: {}
                 httpMethod: POST
                 type: AWS_PROXY
-                passthroughBehavior: WHEN_NO_MATCH
               responses:
                 '201':
                   description: 'Upload Created'
@@ -92,7 +90,6 @@ Resources:
                 responses: {}
                 httpMethod: POST
                 type: AWS_PROXY
-                passthroughBehavior: WHEN_NO_MATCH
               responses:
                 '200':
                   description: 'Parts already uploaded'
@@ -129,7 +126,6 @@ Resources:
                 responses: {}
                 httpMethod: POST
                 type: AWS_PROXY
-                passthroughBehavior: WHEN_NO_MATCH
               responses:
                 '200':
                   description: 'presigned upload url'
@@ -166,7 +162,6 @@ Resources:
                 responses: {}
                 httpMethod: POST
                 type: AWS_PROXY
-                passthroughBehavior: WHEN_NO_MATCH
               responses:
                 '200':
                   description: 'Upload Aborted'
@@ -203,7 +198,6 @@ Resources:
                 responses: {}
                 httpMethod: POST
                 type: AWS_PROXY
-                passthroughBehavior: WHEN_NO_MATCH
               responses:
                 '200':
                   description: 'Upload Completed'
