@@ -1,11 +1,11 @@
 package no.unit.nva.amazon.s3;
 
 
-import com.amazonaws.SdkClientException;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ListPartsRequest;
 import com.amazonaws.services.s3.model.PartListing;
 import com.amazonaws.services.s3.model.PartSummary;
@@ -24,6 +24,7 @@ import static no.unit.nva.amazon.s3.GatewayResponse.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
+import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
@@ -99,10 +100,10 @@ public class ListPartsHandler implements RequestHandler<Map<String, Object>, Gat
             response.setBody(new Gson().toJson(listPartsElements));
             response.setStatusCode(SC_OK);
             System.out.println(response);
-        } catch (SdkClientException e) {
+        } catch (AmazonS3Exception e) {
             System.out.println(e);
             response.setErrorBody(e.getMessage());
-            response.setStatusCode(SC_INTERNAL_SERVER_ERROR);
+            response.setStatusCode(SC_NOT_FOUND);
         } catch (Exception e) {
             System.out.println(e);
             response.setErrorBody(e.getMessage());

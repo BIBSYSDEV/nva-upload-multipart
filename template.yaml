@@ -96,6 +96,13 @@ Resources:
                     application/json:
                       schema:
                         $ref: '#/components/schemas/listPartsResponseBody'
+                '404':
+                  description: 'The specified upload does not exist'
+                  content:
+                    application/json:
+                      schema:
+                        type: object
+
           /prepare:
             post:
               summary:  Generates a presigned URL to upload a single part
