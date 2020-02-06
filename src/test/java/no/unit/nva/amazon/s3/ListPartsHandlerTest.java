@@ -2,6 +2,7 @@ package no.unit.nva.amazon.s3;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ListPartsRequest;
 import com.amazonaws.services.s3.model.PartListing;
 import com.amazonaws.services.s3.model.PartSummary;
@@ -11,6 +12,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Type;
@@ -25,6 +27,7 @@ import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
 import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
+import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -115,6 +118,55 @@ public class ListPartsHandlerTest {
     }
 
     @Test
+    public void testHandleRequestWithManyParts() {
+
+        ListPartsRequestBody requestInputBody = new ListPartsRequestBody();
+        requestInputBody.uploadId = "uploadId";
+        requestInputBody.key = "key";
+
+        Map<String, Object> requestInput = new HashMap<>();
+        requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
+
+        PartSummary partSummary1 = new PartSummary();
+        partSummary1.setPartNumber(1);
+        partSummary1.setETag("ETag1");
+        partSummary1.setSize(1);
+        List<PartSummary> partsSummary = new ArrayList<>();
+        partsSummary.add(partSummary1);
+
+        PartSummary partSummary2 = new PartSummary();
+        partSummary2.setPartNumber(2);
+        partSummary2.setETag("ETag2");
+        partSummary2.setSize(2);
+        partsSummary.add(partSummary2);
+
+        PartListing listPartsResponse = Mockito.spy(new PartListing());
+        boolean isTruncated = false;
+
+        Mockito.doReturn(true, false).when(listPartsResponse).isTruncated();
+
+        listPartsResponse.setParts(partsSummary);
+
+        AmazonS3 mockS3Client = mock(AmazonS3.class);
+        when(mockS3Client.listParts(Mockito.any(ListPartsRequest.class))).thenReturn(listPartsResponse);
+
+        ListPartsHandler listPartsHandler = new ListPartsHandler(environment, mockS3Client);
+        final GatewayResponse response = listPartsHandler.handleRequest(requestInput, null);
+
+        assertNotNull(response);
+        assertEquals(SC_OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        Type type = new TypeToken<List<PartSummary>>() {
+        }.getType();
+        final List<String> responseBody = new Gson().fromJson(response.getBody(), type);
+
+        assertNotNull(responseBody);
+    }
+
+
+
+    @Test
     public void testHandleFailingRequest() {
 
         ListPartsRequestBody requestInputBody = new ListPartsRequestBody();
@@ -126,13 +178,13 @@ public class ListPartsHandlerTest {
 
         AmazonS3 mockS3Client = mock(AmazonS3.class);
 
-        SdkClientException sdkClientException = new SdkClientException("mock-exception");
-        when(mockS3Client.listParts(Mockito.any(ListPartsRequest.class))).thenThrow(sdkClientException);
+        AmazonS3Exception amazonS3Exception = new AmazonS3Exception("mock-exception");
+        when(mockS3Client.listParts(Mockito.any(ListPartsRequest.class))).thenThrow(amazonS3Exception);
         ListPartsHandler listPartsHandler = new ListPartsHandler(environment, mockS3Client);
         final GatewayResponse response = listPartsHandler.handleRequest(requestInput, null);
 
         assertNotNull(response);
-        assertEquals(SC_INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals(SC_NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
     }
 

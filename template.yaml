@@ -128,6 +128,13 @@ Resources:
                     application/json:
                       schema:
                         $ref: '#/components/schemas/prepareUploadPartResponseBody'
+                '404':
+                  description: 'The specified upload does not exist'
+                  content:
+                    application/json:
+                      schema:
+                        type: object
+
           /abort:
             post:
               summary: Aborts a Multipart upload, and deletes all parts that have been uploaded so far.
@@ -153,6 +160,13 @@ Resources:
                     application/json:
                       schema:
                         type: object
+                '404':
+                  description: 'The specified upload does not exist'
+                  content:
+                    application/json:
+                      schema:
+                        type: object
+
           /complete:
             post:
               summary: Completes a Multipart upload, combining all parts into a single object in the S3 bucket
@@ -174,6 +188,12 @@ Resources:
               responses:
                 '200':
                   description: 'Upload Completed'
+                  content:
+                    application/json:
+                      schema:
+                        type: object
+                '404':
+                  description: 'The specified upload does not exist'
                   content:
                     application/json:
                       schema:

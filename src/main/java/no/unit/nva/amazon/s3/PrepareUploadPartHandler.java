@@ -2,11 +2,11 @@ package no.unit.nva.amazon.s3;
 
 
 import com.amazonaws.HttpMethod;
-import com.amazonaws.SdkClientException;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -23,12 +23,12 @@ import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
+import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 
 public class PrepareUploadPartHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
-
 
     public static final String PARAMETER_UPLOAD_ID_KEY = "uploadId";
     public static final String PARAMETER_PART_NUMBER_KEY = "partNumber";
@@ -95,13 +95,15 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
 
 
             System.out.println(predesignedUloadUrl);
-            response.setBody(new Gson().toJson(predesignedUloadUrl));
+            PrepareUploadPartResponseBody prepareUploadPartResponseBody = new PrepareUploadPartResponseBody();
+            prepareUploadPartResponseBody.url = predesignedUloadUrl;
+            response.setBody(new Gson().toJson(prepareUploadPartResponseBody));
             response.setStatusCode(SC_OK);
             System.out.println(response);
-        } catch (SdkClientException e) {
+        } catch (AmazonS3Exception e) {
             System.out.println(e);
             response.setErrorBody(e.getMessage());
-            response.setStatusCode(SC_INTERNAL_SERVER_ERROR);
+            response.setStatusCode(SC_NOT_FOUND);
         } catch (Exception e) {
             response.setErrorBody(e.getMessage());
             response.setStatusCode(SC_INTERNAL_SERVER_ERROR);

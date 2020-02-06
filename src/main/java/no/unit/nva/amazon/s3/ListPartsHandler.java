@@ -66,7 +66,6 @@ public class ListPartsHandler implements RequestHandler<Map<String, Object>, Gat
         final GatewayResponse response = new GatewayResponse();
         response.setHeaders(headers());
 
-
         ListPartsRequestBody requestBody = null;
         try {
             requestBody = checkParameters(input);
@@ -88,15 +87,24 @@ public class ListPartsHandler implements RequestHandler<Map<String, Object>, Gat
 
             ListPartsRequest listPartsRequest = new ListPartsRequest(bucketName, requestBody.key, requestBody.uploadId);
 
-            PartListing partListing = s3Client.listParts(listPartsRequest);
             List<ListPartsElement> listPartsElements = new ArrayList<>();
-            List<PartSummary> partSummaries = partListing.getParts();
 
-            for (PartSummary partSummary : partSummaries) {
-                listPartsElements.add(new ListPartsElement(partSummary));
+            boolean allPartsRead = false;
+            PartListing partListing = s3Client.listParts(listPartsRequest);
+            while (!allPartsRead) {
+                List<PartSummary> partSummaries = partListing.getParts();
+                for (PartSummary partSummary : partSummaries) {
+                    listPartsElements.add(new ListPartsElement(partSummary));
+                }
+                if (partListing.isTruncated()) {
+                    Integer partNumberMarker = partListing.getNextPartNumberMarker();
+                    listPartsRequest.setPartNumberMarker(partNumberMarker);
+                    partListing = s3Client.listParts(listPartsRequest);
+                } else {
+                    allPartsRead = true;
+                }
             }
 
-            System.out.println(partListing);
             response.setBody(new Gson().toJson(listPartsElements));
             response.setStatusCode(SC_OK);
             System.out.println(response);

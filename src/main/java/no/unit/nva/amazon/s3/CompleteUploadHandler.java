@@ -1,10 +1,10 @@
 package no.unit.nva.amazon.s3;
 
-import com.amazonaws.SdkClientException;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadResult;
 import com.amazonaws.services.s3.model.PartETag;
@@ -24,13 +24,12 @@ import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
+import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 public class CompleteUploadHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
 
-
-    public static final String UPLOAD_COMPLETE_MESSAGE = "Upload Complete";
     public static final String PARAMETER_INPUT_KEY = "input";
     public static final String PARAMETER_BODY_KEY = "body";
     public static final String PARAMETER_KEY_KEY = "key";
@@ -97,13 +96,15 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
             CompleteMultipartUploadResult uploadResult =
                     s3Client.completeMultipartUpload(completeMultipartUploadRequest);
             System.out.println(uploadResult);
-            response.setBody(UPLOAD_COMPLETE_MESSAGE);
+            CompleteUploadResponseBody completeUploadResponseBody = new CompleteUploadResponseBody();
+            completeUploadResponseBody.key = requestBody.key;
+            response.setBody(new Gson().toJson(completeUploadResponseBody));
             response.setStatusCode(SC_OK);
             System.out.println(response);
-        } catch (SdkClientException e) {
+        } catch (AmazonS3Exception e) {
             System.out.println(e);
             response.setErrorBody(e.getMessage());
-            response.setStatusCode(SC_INTERNAL_SERVER_ERROR);
+            response.setStatusCode(SC_NOT_FOUND);
         } catch (Exception e) {
             response.setErrorBody(e.getMessage());
             response.setStatusCode(SC_INTERNAL_SERVER_ERROR);

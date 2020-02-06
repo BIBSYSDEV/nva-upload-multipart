@@ -120,6 +120,33 @@ public class CreateUploadHandlerTest {
     }
 
     @Test
+    public void testHandleFailingRequestException() {
+
+        CreateUploadRequestBody requestInputBody = createCreateUploadRequestBody();
+
+        Map<String, Object> requestInput = new HashMap<>();
+        requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
+
+        AmazonS3 mockS3Client =  mock(AmazonS3.class);
+        InitiateMultipartUploadResult createUploadResponse =  new InitiateMultipartUploadResult();
+        createUploadResponse.setKey("uploadKey");
+        createUploadResponse.setUploadId("uploadId");
+        RuntimeException runtimeException = new RuntimeException("mock-exception");
+        when(mockS3Client.initiateMultipartUpload(Mockito.any(InitiateMultipartUploadRequest.class)))
+                .thenThrow(runtimeException);
+        CreateUploadHandler createUploadHandler = Mockito.spy(new CreateUploadHandler(environment));
+        Mockito.doReturn(mockS3Client).when(createUploadHandler).getS3Client();
+        final GatewayResponse response = createUploadHandler.handleRequest(requestInput, null);
+
+
+        assertNotNull(response);
+        assertEquals(SC_INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+
+
+    @Test
     public void testHandleFailingRequestNoInput() {
 
 

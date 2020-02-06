@@ -2,6 +2,7 @@ package no.unit.nva.amazon.s3;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.google.gson.Gson;
 import org.junit.Before;
@@ -21,6 +22,7 @@ import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
 import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
+import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -88,9 +90,10 @@ public class PrepareUploadPartHandlerTest {
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        final URL url  = new Gson().fromJson(response.getBody(), URL.class);
+        final PrepareUploadPartResponseBody responseBody =
+                new Gson().fromJson(response.getBody(), PrepareUploadPartResponseBody.class);
+        assertNotNull(responseBody.url);
 
-        assertNotNull(url);
     }
 
     @Test
@@ -103,14 +106,14 @@ public class PrepareUploadPartHandlerTest {
 
         AmazonS3 mockS3Client = mock(AmazonS3.class);
 
-        SdkClientException sdkClientException = new SdkClientException("mock-exception");
+        AmazonS3Exception amazonS3Exception = new AmazonS3Exception("mock-exception");
         when(mockS3Client.generatePresignedUrl(Mockito.any(GeneratePresignedUrlRequest.class)))
-                .thenThrow(sdkClientException);
+                .thenThrow(amazonS3Exception);
         PrepareUploadPartHandler prepareUploadPartHandler = new PrepareUploadPartHandler(environment, mockS3Client);
         final GatewayResponse response = prepareUploadPartHandler.handleRequest(requestInput, null);
 
         assertNotNull(response);
-        assertEquals(SC_INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals(SC_NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
     }
 
