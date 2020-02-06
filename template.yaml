@@ -63,14 +63,18 @@ Resources:
                     application/json:
                       schema:
                         $ref: '#/components/schemas/createUploadResponseBody'
+                '400':
+                  description: 'Bad request'
+                  content:
+                    application/json:
+                      schema:
+                        type: object
                 '401':
                   description: 'Unauthorized'
                   content:
                     application/json:
                       schema:
                         type: object
-
-
           /listparts:
             post:
               summary: List the parts of a file that have already been uploaded.
@@ -96,13 +100,18 @@ Resources:
                     application/json:
                       schema:
                         $ref: '#/components/schemas/listPartsResponseBody'
+                '400':
+                  description: 'Bad request'
+                  content:
+                    application/json:
+                      schema:
+                        type: object
                 '404':
                   description: 'The specified upload does not exist'
                   content:
                     application/json:
                       schema:
                         type: object
-
           /prepare:
             post:
               summary:  Generates a presigned URL to upload a single part
@@ -128,13 +137,18 @@ Resources:
                     application/json:
                       schema:
                         $ref: '#/components/schemas/prepareUploadPartResponseBody'
+                '400':
+                  description: 'Bad request'
+                  content:
+                    application/json:
+                      schema:
+                        type: object
                 '404':
                   description: 'The specified upload does not exist'
                   content:
                     application/json:
                       schema:
                         type: object
-
           /abort:
             post:
               summary: Aborts a Multipart upload, and deletes all parts that have been uploaded so far.
@@ -160,13 +174,18 @@ Resources:
                     application/json:
                       schema:
                         type: object
+                '400':
+                  description: 'Bad request'
+                  content:
+                    application/json:
+                      schema:
+                        type: object
                 '404':
                   description: 'The specified upload does not exist'
                   content:
                     application/json:
                       schema:
                         type: object
-
           /complete:
             post:
               summary: Completes a Multipart upload, combining all parts into a single object in the S3 bucket
@@ -188,6 +207,12 @@ Resources:
               responses:
                 '200':
                   description: 'Upload Completed'
+                  content:
+                    application/json:
+                      schema:
+                        type: object
+                '400':
+                  description: 'Bad request'
                   content:
                     application/json:
                       schema:
@@ -304,7 +329,6 @@ Resources:
                       PartNumber:
                         type: string
                         description: The index of this part in the upload
-
               required:
                 - uploadId
                 - key
@@ -342,7 +366,6 @@ Resources:
                 url:
                   type: string
                   description: The presigned URL to upload a part
-
 
   CreateUploadFunction:
     Type: AWS::Serverless::Function
@@ -439,7 +462,6 @@ Resources:
             Method: post
             RestApiId: !Ref UploadApi
 
-
   UploadApiMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
@@ -475,4 +497,3 @@ Resources:
                 Resource:
                   - arn:aws:s3:::nva-storage-develop
                   - arn:aws:s3:::nva-storage-develop/*
-
