@@ -49,7 +49,7 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
         this.bucketName = environment.get(S3_UPLOAD_BUCKET_KEY).orElseThrow(IllegalStateException::new);
     }
 
-    public static AmazonS3 createAmazonS3Client() {
+    private static AmazonS3 createAmazonS3Client() {
         return AmazonS3ClientBuilder.standard()
                 .build();
     }
