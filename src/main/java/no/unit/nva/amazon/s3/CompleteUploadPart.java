@@ -6,9 +6,9 @@ public class CompleteUploadPart {
     @SerializedName("ETag")
     private final String etag;
     @SerializedName("PartNumber")
-    private final String partNumber;
+    private final int partNumber;
 
-    public CompleteUploadPart(String partNumber, String etag) {
+    public CompleteUploadPart(int partNumber, String etag) {
         this.partNumber = partNumber;
         this.etag = etag;
     }
@@ -17,7 +17,7 @@ public class CompleteUploadPart {
         return etag;
     }
 
-    public String getPartNumber() {
+    public int getPartNumber() {
         return partNumber;
     }
 

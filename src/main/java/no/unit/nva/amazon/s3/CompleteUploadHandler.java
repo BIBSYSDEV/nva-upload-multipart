@@ -91,7 +91,7 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
             completeMultipartUploadRequest.setUploadId(requestBody.uploadId);
             List<PartETag> partETags = new ArrayList<>();
             for (CompleteUploadPart part : requestBody.parts) {
-                PartETag partETag = new PartETag(Integer.parseInt(part.getPartNumber()), part.getEtag());
+                PartETag partETag = new PartETag(part.getPartNumber(), part.getEtag());
                 partETags.add(partETag);
             }
             completeMultipartUploadRequest.setPartETags(partETags);

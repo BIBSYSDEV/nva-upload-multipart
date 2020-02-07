@@ -321,7 +321,7 @@ Resources:
                         type: string
                         description: eTag of the uploaded part
                       PartNumber:
-                        type: string
+                        type: integer
                         description: The index of this part in the upload
               required:
                 - uploadId

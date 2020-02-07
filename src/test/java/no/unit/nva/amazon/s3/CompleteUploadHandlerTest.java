@@ -54,7 +54,7 @@ public class CompleteUploadHandlerTest {
         requestInputBody.key = "key";
         requestInputBody.uploadId = "uploadId";
         List<CompleteUploadPart> partEtags = new ArrayList<>();
-        partEtags.add(new CompleteUploadPart("1","eTag1"));
+        partEtags.add(new CompleteUploadPart(1,"eTag1"));
         requestInputBody.parts = partEtags;
 
         return requestInputBody;
