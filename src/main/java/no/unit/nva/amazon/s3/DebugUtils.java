@@ -1,5 +1,7 @@
 package no.unit.nva.amazon.s3;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -11,10 +13,7 @@ public class DebugUtils {
      * @return Stringdump of exception
      */
     public static String dumpException(Exception e) {
-        StringWriter errors = new StringWriter();
-        e.printStackTrace(new PrintWriter(errors));
-        final String stacktrace = errors.toString().replace("\n", "\r");
-        return  stacktrace;
+        return ExceptionUtils.getStackTrace(e).replace("\n", "\r");
     }
 
 }
