@@ -69,11 +69,13 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
         try {
             requestBody = checkParameters(input);
         } catch (JsonSyntaxException | ParameterMissingException e) {
+            System.out.println(DebugUtils.dumpException(e));
             response.setErrorBody(e.getMessage());
             response.setStatusCode(SC_BAD_REQUEST);
             System.out.println(response);
             return response;
         } catch (Exception e) {
+            System.out.println(DebugUtils.dumpException(e));
             response.setErrorBody(e.getMessage());
             response.setStatusCode(SC_INTERNAL_SERVER_ERROR);
             System.out.println(response);
@@ -89,10 +91,11 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
             response.setStatusCode(SC_OK);
             System.out.println(response);
         } catch (AmazonS3Exception e) {
-            System.out.println(e);
+            System.out.println(DebugUtils.dumpException(e));
             response.setErrorBody(e.getMessage());
             response.setStatusCode(SC_NOT_FOUND);
         } catch (Exception e) {
+            System.out.println(DebugUtils.dumpException(e));
             response.setErrorBody(e.getMessage());
             response.setStatusCode(SC_INTERNAL_SERVER_ERROR);
             System.out.println(response);
@@ -100,6 +103,7 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
         }
         return response;
     }
+
 
     /**
      * Checks parameters for abortint multipart upload.

@@ -4,6 +4,7 @@ import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.google.gson.Gson;
 import org.junit.Before;
 import org.junit.Rule;
@@ -23,6 +24,7 @@ import static org.apache.http.HttpStatus.SC_CREATED;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -238,6 +240,44 @@ public class CreateUploadHandlerTest {
         assertEquals(SC_INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
     }
+
+    @Test
+    public void testHandleGetObjectMetadata() {
+
+        CreateUploadRequestBody requestBody = createCreateUploadRequestBody();
+        CreateUploadHandler createUploadHandler = new CreateUploadHandler(environment);
+
+        ObjectMetadata objectMetadata = createUploadHandler.getObjectMetadata(requestBody);
+        assertNotNull(objectMetadata);
+        requestBody.filename = null;
+        objectMetadata = createUploadHandler.getObjectMetadata(requestBody);
+        assertNotNull(objectMetadata);
+
+        requestBody.filename = "";
+        objectMetadata = createUploadHandler.getObjectMetadata(requestBody);
+        assertNotNull(objectMetadata);
+
+        requestBody.mimetype = null;
+        objectMetadata = createUploadHandler.getObjectMetadata(requestBody);
+        assertNotNull(objectMetadata);
+
+        requestBody.mimetype = "";
+        objectMetadata = createUploadHandler.getObjectMetadata(requestBody);
+        assertNotNull(objectMetadata);
+
+        requestBody.mimetype = "meme/type";
+        objectMetadata = createUploadHandler.getObjectMetadata(requestBody);
+        assertNotNull(objectMetadata.getContentType());
+
+        requestBody.mimetype = "memetype";
+        objectMetadata = createUploadHandler.getObjectMetadata(requestBody);
+        assertNull(objectMetadata.getContentType());
+
+
+    }
+
+
+
 
     private CreateUploadRequestBody createCreateUploadRequestBody() {
         CreateUploadRequestBody requestInputBody = new CreateUploadRequestBody();

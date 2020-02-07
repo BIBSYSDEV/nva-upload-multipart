@@ -163,7 +163,7 @@ Resources:
                 httpMethod: POST
                 type: AWS_PROXY
               responses:
-                '200':
+                '204':
                   description: 'Upload Aborted'
                   content:
                     application/json:

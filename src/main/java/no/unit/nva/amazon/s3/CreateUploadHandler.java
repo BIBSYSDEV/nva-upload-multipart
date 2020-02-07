@@ -31,10 +31,9 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
     public static final String PARAMETER_BODY_KEY = "body";
     public static final String PARAMETER_FILENAME_KEY = "filename";
     public static final String PARAMETER_INPUT_KEY = "input";
-
+    private static final AmazonS3 s3Client = createAmazonS3Client();
     public final transient String bucketName;
     private final transient String allowedOrigin;
-    private static final AmazonS3 s3Client = createAmazonS3Client();
 
 
     public CreateUploadHandler() {
@@ -56,7 +55,7 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
                 .build();
     }
 
-    public  AmazonS3 getS3Client() {
+    public AmazonS3 getS3Client() {
         return s3Client;
     }
 
@@ -71,11 +70,13 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
         try {
             requestBody = checkParameters(input);
         } catch (JsonSyntaxException | ParameterMissingException e) {
+            System.out.println(DebugUtils.dumpException(e));
             response.setErrorBody(e.getMessage());
             response.setStatusCode(SC_BAD_REQUEST);
             System.out.println(response);
             return response;
         } catch (Exception e) {
+            System.out.println(DebugUtils.dumpException(e));
             response.setErrorBody(e.getMessage());
             response.setStatusCode(SC_INTERNAL_SERVER_ERROR);
             System.out.println(response);
@@ -96,28 +97,33 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
             responseBody.key = keyName;
             response.setBody(new Gson().toJson(responseBody));
             response.setStatusCode(SC_CREATED);
-            System.out.println(response);
         } catch (SdkClientException e) {
-            System.out.println(e);
+            System.out.println(DebugUtils.dumpException(e));
             response.setErrorBody(e.getMessage());
             response.setStatusCode(SC_INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
+            System.out.println(DebugUtils.dumpException(e));
             response.setErrorBody(e.getMessage());
             response.setStatusCode(SC_INTERNAL_SERVER_ERROR);
-            System.out.println(response);
             return response;
         }
         return response;
     }
 
-    private ObjectMetadata getObjectMetadata(CreateUploadRequestBody requestBody) {
+    /**
+     * Extracting metadata from the given file resource.
+     * @param requestBody incoming parameters
+     * @return Metadata to be stored with file on S3
+     */
+    public ObjectMetadata getObjectMetadata(CreateUploadRequestBody requestBody) {
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.setContentMD5(null);
 
-        if (requestBody.filename != null && !requestBody.filename.isEmpty()) {
+        if (!Objects.isNull(requestBody.filename) && !requestBody.filename.isEmpty()) {
             objectMetadata.setContentDisposition("filename=\"" + requestBody.filename + "\"");
         }
-        if (requestBody.mimetype != null && !requestBody.mimetype.isEmpty() && requestBody.mimetype.contains("/")) {
+        if (!(Objects.isNull(requestBody.mimetype) || requestBody.mimetype.isEmpty())
+                && requestBody.mimetype.contains("/")) {
             objectMetadata.setContentType(requestBody.mimetype);
         }
 

@@ -4,11 +4,12 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.mockito.Mockito;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 public class EnvironmentTest {
@@ -27,6 +28,13 @@ public class EnvironmentTest {
         final Optional<String> variableNotDefined = new Environment().get("variableNotDefined");
         assertTrue(!variableNotDefined.isPresent());
     }
+
+    @Test
+    public void testDebugUtils() {
+        final DebugUtils debugUtils = new DebugUtils();
+        assertNotNull(debugUtils);
+    }
+
 
 
 }

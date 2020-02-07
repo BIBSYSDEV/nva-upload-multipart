@@ -16,10 +16,6 @@ public class Environment {
     public Optional<String> get(String name) {
         String environmentVariable = System.getenv(name);
 
-        if (environmentVariable == null || environmentVariable.isEmpty()) {
-            return Optional.empty();
-        }
-
-        return  Optional.of(environmentVariable);
+        return  Optional.ofNullable(environmentVariable);
     }
 }

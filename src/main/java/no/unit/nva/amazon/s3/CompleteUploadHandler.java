@@ -71,11 +71,13 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
         try {
             requestBody = checkParameters(input);
         } catch (JsonSyntaxException | ParameterMissingException e) {
+            System.out.println(DebugUtils.dumpException(e));
             response.setErrorBody(e.getMessage());
             response.setStatusCode(SC_BAD_REQUEST);
             System.out.println(response);
             return response;
         } catch (Exception e) {
+            System.out.println(DebugUtils.dumpException(e));
             response.setErrorBody(e.getMessage());
             response.setStatusCode(SC_INTERNAL_SERVER_ERROR);
             System.out.println(response);
@@ -102,10 +104,11 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
             response.setStatusCode(SC_OK);
             System.out.println(response);
         } catch (AmazonS3Exception e) {
-            System.out.println(e);
+            System.out.println(DebugUtils.dumpException(e));
             response.setErrorBody(e.getMessage());
             response.setStatusCode(SC_NOT_FOUND);
         } catch (Exception e) {
+            System.out.println(DebugUtils.dumpException(e));
             response.setErrorBody(e.getMessage());
             response.setStatusCode(SC_INTERNAL_SERVER_ERROR);
             System.out.println(response);
