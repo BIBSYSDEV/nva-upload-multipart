@@ -87,7 +87,8 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
 
         try {
             getS3Client().abortMultipartUpload(abortMultipartUploadRequest);
-            response.setBody(MULTIPART_UPLOAD_ABORTED_MESSAGE);
+            SimpleMessageResponse  message = new SimpleMessageResponse(MULTIPART_UPLOAD_ABORTED_MESSAGE);
+            response.setBody(new Gson().toJson(message));
             response.setStatusCode(SC_OK);
             System.out.println(response);
         } catch (AmazonS3Exception e) {
