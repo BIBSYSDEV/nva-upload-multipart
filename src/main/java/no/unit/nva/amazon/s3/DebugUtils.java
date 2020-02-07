@@ -13,7 +13,7 @@ public class DebugUtils {
     public static String dumpException(Exception e) {
         StringWriter errors = new StringWriter();
         e.printStackTrace(new PrintWriter(errors));
-        final String stacktrace = errors.toString().replace("\n", "\n ");
+        final String stacktrace = errors.toString().replace("\n", "\r");
         return  stacktrace;
     }
 
