@@ -59,7 +59,7 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
                 .build();
     }
 
-    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+
     @Override
     public GatewayResponse handleRequest(Map<String, Object> input, Context context) {
 
@@ -85,16 +85,8 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
         }
 
         try {
-            CompleteMultipartUploadRequest completeMultipartUploadRequest = new CompleteMultipartUploadRequest();
-            completeMultipartUploadRequest.setBucketName(bucketName);
-            completeMultipartUploadRequest.setKey(requestBody.key);
-            completeMultipartUploadRequest.setUploadId(requestBody.uploadId);
-            List<PartETag> partETags = new ArrayList<>();
-            for (CompleteUploadPart part : requestBody.parts) {
-                PartETag partETag = new PartETag(part.getPartNumber(), part.getEtag());
-                partETags.add(partETag);
-            }
-            completeMultipartUploadRequest.setPartETags(partETags);
+            CompleteMultipartUploadRequest completeMultipartUploadRequest =
+                    getCompleteMultipartUploadRequest(requestBody);
             CompleteMultipartUploadResult uploadResult =
                     s3Client.completeMultipartUpload(completeMultipartUploadRequest);
             System.out.println(uploadResult);
@@ -115,6 +107,35 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
             return response;
         }
         return response;
+    }
+
+    /**
+     * Extracts and checks requestdata into s3 understandable stuff.
+     * @param requestBody Request from frontend
+     * @return request to send to S3
+     */
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+    public CompleteMultipartUploadRequest getCompleteMultipartUploadRequest(CompleteUploadRequestBody requestBody) {
+        CompleteMultipartUploadRequest completeMultipartUploadRequest = new CompleteMultipartUploadRequest();
+        completeMultipartUploadRequest.setBucketName(bucketName);
+        completeMultipartUploadRequest.setKey(requestBody.key);
+        completeMultipartUploadRequest.setUploadId(requestBody.uploadId);
+        List<PartETag> partETags = new ArrayList<>();
+        for (CompleteUploadPart part : requestBody.parts) {
+            if (hasValue(part)) {
+                PartETag partETag = new PartETag(part.getPartNumber(), part.getEtag());
+                partETags.add(partETag);
+            } else {
+                System.out.println("Skipping empty PartETag in request");
+            }
+        }
+        completeMultipartUploadRequest.setPartETags(partETags);
+        return completeMultipartUploadRequest;
+    }
+
+    private boolean hasValue(CompleteUploadPart part) {
+        boolean notEnoughData  = Objects.isNull(part)  || Objects.isNull(part.getEtag()) || part.getEtag().isEmpty();
+        return !notEnoughData;
     }
 
     /**

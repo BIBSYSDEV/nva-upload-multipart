@@ -13,6 +13,8 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mockito;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,12 +30,16 @@ import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings({"checkstyle:javadoctype", "checkstyle:MissingJavadocMethod"})
 public class CompleteUploadHandlerTest {
+
+    public static final String COMPLETE_UPLOAD_REQUEST_WITH_EMPTY_ELEMENT_JSON
+            = "/CompleteRequestWithEmptyElement.json";
 
     @Rule
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
@@ -54,13 +60,13 @@ public class CompleteUploadHandlerTest {
         requestInputBody.key = "key";
         requestInputBody.uploadId = "uploadId";
         List<CompleteUploadPart> partEtags = new ArrayList<>();
-        partEtags.add(new CompleteUploadPart(1,"eTag1"));
+        partEtags.add(new CompleteUploadPart(1, "eTag1"));
         requestInputBody.parts = partEtags;
 
         return requestInputBody;
     }
-    
-    
+
+
     @Test
     public void testDefaultConstructor() {
         environmentVariables.set(ALLOWED_ORIGIN_KEY, ALLOWED_ORIGIN_KEY);
@@ -218,7 +224,6 @@ public class CompleteUploadHandlerTest {
     }
 
 
-
     @Test
     public void testHandleFailingRequestCheckParametersOtherException() {
 
@@ -265,5 +270,22 @@ public class CompleteUploadHandlerTest {
         assertNotNull(response.getBody());
     }
 
+    @Test
+    public void testHandleRequestWithEmptyElement() {
+        InputStream stream =
+                CompleteUploadHandlerTest.class.getResourceAsStream(COMPLETE_UPLOAD_REQUEST_WITH_EMPTY_ELEMENT_JSON);
+        final CompleteUploadRequestBody completeUploadRequestBody = new Gson().fromJson(new InputStreamReader(stream),
+                CompleteUploadRequestBody.class);
+        assertNotNull(completeUploadRequestBody);
+
+        AmazonS3 mockS3Client = mock(AmazonS3.class);
+        CompleteUploadHandler completeUploadHandler = new CompleteUploadHandler(environment, mockS3Client);
+
+        final CompleteMultipartUploadRequest completeMultipartUploadRequest =
+                completeUploadHandler.getCompleteMultipartUploadRequest(completeUploadRequestBody);
+        assertNotNull(completeMultipartUploadRequest);
+
+        assertNotEquals(completeMultipartUploadRequest.getPartETags().size(), completeUploadRequestBody.parts.size());
+    }
 
 }
