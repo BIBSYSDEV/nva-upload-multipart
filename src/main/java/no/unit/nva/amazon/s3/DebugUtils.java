@@ -2,9 +2,6 @@ package no.unit.nva.amazon.s3;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 public class DebugUtils {
 
     /**
