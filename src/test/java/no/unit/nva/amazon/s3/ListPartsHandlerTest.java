@@ -40,6 +40,8 @@ public class ListPartsHandlerTest {
     public static final int SAMPLE_PART_NUMBER = 1;
     public static final String SAMPLE_ETAG = "eTag";
     public static final int SAMPLE_SIZE = 1;
+    public static final String SAMPLE_UPLOAD_ID = "uploadId";
+    public static final String SAMPLE_KEY = "key";
     @Rule
     public final EnvironmentVariables environmentVariables
             = new EnvironmentVariables();
@@ -78,9 +80,7 @@ public class ListPartsHandlerTest {
     @Test
     public void testHandleRequest() {
 
-        ListPartsRequestBody requestInputBody = new ListPartsRequestBody();
-        requestInputBody.uploadId = "uploadId";
-        requestInputBody.key = "key";
+        ListPartsRequestBody requestInputBody = new ListPartsRequestBody(SAMPLE_UPLOAD_ID, SAMPLE_KEY);
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
@@ -120,10 +120,7 @@ public class ListPartsHandlerTest {
     @Test
     public void testHandleRequestWithManyParts() {
 
-        ListPartsRequestBody requestInputBody = new ListPartsRequestBody();
-        requestInputBody.uploadId = "uploadId";
-        requestInputBody.key = "key";
-
+        ListPartsRequestBody requestInputBody = new ListPartsRequestBody(SAMPLE_UPLOAD_ID, SAMPLE_KEY);
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
 
@@ -169,10 +166,7 @@ public class ListPartsHandlerTest {
     @Test
     public void testHandleFailingRequest() {
 
-        ListPartsRequestBody requestInputBody = new ListPartsRequestBody();
-        requestInputBody.key = "key";
-        requestInputBody.uploadId = "uploadId";
-
+        ListPartsRequestBody requestInputBody = new ListPartsRequestBody(SAMPLE_UPLOAD_ID, SAMPLE_KEY);
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
 
@@ -223,10 +217,7 @@ public class ListPartsHandlerTest {
     @Test
     public void testHandleFailingRequestMissingParameterUploadId() {
 
-        ListPartsRequestBody requestInputBody = new ListPartsRequestBody();
-        requestInputBody.key = "key";
-        requestInputBody.uploadId = null;
-
+        ListPartsRequestBody requestInputBody = new ListPartsRequestBody(null, SAMPLE_KEY);
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
 
@@ -246,9 +237,7 @@ public class ListPartsHandlerTest {
     @Test
     public void testHandleFailingRequestMissingParameterKey() {
 
-        ListPartsRequestBody requestInputBody = new ListPartsRequestBody();
-        requestInputBody.key = null;
-        requestInputBody.uploadId = "uploadId";
+        ListPartsRequestBody requestInputBody = new ListPartsRequestBody(SAMPLE_UPLOAD_ID, null);
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
@@ -270,9 +259,7 @@ public class ListPartsHandlerTest {
     @Test
     public void testHandleFailingRequestCheckParametersOtherException() {
 
-        ListPartsRequestBody requestInputBody = new ListPartsRequestBody();
-        requestInputBody.key = "key";
-        requestInputBody.uploadId = "uploadId";
+        ListPartsRequestBody requestInputBody = new ListPartsRequestBody(SAMPLE_UPLOAD_ID, SAMPLE_KEY);
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
@@ -294,10 +281,7 @@ public class ListPartsHandlerTest {
     @Test
     public void testHandleFailingRequestOtherException() {
 
-        ListPartsRequestBody requestInputBody = new ListPartsRequestBody();
-        requestInputBody.key = "key";
-        requestInputBody.uploadId = "uploadId";
-
+        ListPartsRequestBody requestInputBody = new ListPartsRequestBody(SAMPLE_UPLOAD_ID, SAMPLE_KEY);
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
 

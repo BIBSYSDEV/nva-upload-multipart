@@ -31,6 +31,12 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings({"checkstyle:javadoctype", "checkstyle:MissingJavadocMethod"})
 public class CreateUploadHandlerTest {
 
+    public static final String SAMPLE_FILENAME = "filename";
+    public static final String SAMPLE_MIMETYPE = "mime/type";
+    public static final String SAMPLE_SIZE_STRING = "size";
+    public static final String SAMPLE_MD5HASH = "md5hash";
+    public static final String SAMPLE_UPLOADKEY = "uploadKey";
+    public static final String SAMPLE_UPLOADID = "uploadId";
     private Environment environment;
 
     /**
@@ -70,7 +76,8 @@ public class CreateUploadHandlerTest {
     @Test
     public void testHandleRequest() {
 
-        CreateUploadRequestBody requestInputBody = createCreateUploadRequestBody();
+        CreateUploadRequestBody requestInputBody =
+                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
@@ -92,22 +99,23 @@ public class CreateUploadHandlerTest {
         final CreateUploadResponseBody responseBody = new Gson().fromJson(response.getBody(),
                 CreateUploadResponseBody.class);
 
-        assertNotNull(responseBody.key);
-        assertNotNull(responseBody.uploadId);
+        assertNotNull(responseBody.getKey());
+        assertNotNull(responseBody.getUploadId());
     }
 
     @Test
     public void testHandleFailingRequest() {
 
-        CreateUploadRequestBody requestInputBody = createCreateUploadRequestBody();
+        CreateUploadRequestBody requestInputBody =
+                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
 
         AmazonS3 mockS3Client =  mock(AmazonS3.class);
         InitiateMultipartUploadResult createUploadResponse =  new InitiateMultipartUploadResult();
-        createUploadResponse.setKey("uploadKey");
-        createUploadResponse.setUploadId("uploadId");
+        createUploadResponse.setKey(SAMPLE_UPLOADKEY);
+        createUploadResponse.setUploadId(SAMPLE_UPLOADID);
         SdkClientException sdkClientException = new SdkClientException("mock-exception");
         when(mockS3Client.initiateMultipartUpload(Mockito.any(InitiateMultipartUploadRequest.class)))
                 .thenThrow(sdkClientException);
@@ -124,15 +132,16 @@ public class CreateUploadHandlerTest {
     @Test
     public void testHandleFailingRequestException() {
 
-        CreateUploadRequestBody requestInputBody = createCreateUploadRequestBody();
+        CreateUploadRequestBody requestInputBody =
+                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
 
         AmazonS3 mockS3Client =  mock(AmazonS3.class);
         InitiateMultipartUploadResult createUploadResponse =  new InitiateMultipartUploadResult();
-        createUploadResponse.setKey("uploadKey");
-        createUploadResponse.setUploadId("uploadId");
+        createUploadResponse.setKey(SAMPLE_UPLOADKEY);
+        createUploadResponse.setUploadId(SAMPLE_UPLOADID);
         RuntimeException runtimeException = new RuntimeException("mock-exception");
         when(mockS3Client.initiateMultipartUpload(Mockito.any(InitiateMultipartUploadRequest.class)))
                 .thenThrow(runtimeException);
@@ -170,10 +179,8 @@ public class CreateUploadHandlerTest {
     @Test
     public void testHandleFailingRequestMissingFileparameters() {
 
-        CreateUploadRequestBody requestInputBody = createCreateUploadRequestBody();
-
-
-        requestInputBody.filename  = null;
+        CreateUploadRequestBody requestInputBody =
+                new CreateUploadRequestBody(null, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);;
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
@@ -198,7 +205,8 @@ public class CreateUploadHandlerTest {
     @Test
     public void testHandleFailingRequestCheckParametersOtherException() {
 
-        CreateUploadRequestBody requestInputBody = createCreateUploadRequestBody();
+        CreateUploadRequestBody requestInputBody =
+            new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
@@ -221,15 +229,16 @@ public class CreateUploadHandlerTest {
     @Test
     public void testHandleFailingRequestOtherException() {
 
-        CreateUploadRequestBody requestInputBody = createCreateUploadRequestBody();
+        CreateUploadRequestBody requestInputBody =
+                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
 
         AmazonS3 mockS3Client =  mock(AmazonS3.class);
         InitiateMultipartUploadResult createUploadResponse =  new InitiateMultipartUploadResult();
-        createUploadResponse.setKey("uploadKey");
-        createUploadResponse.setUploadId("uploadId");
+        createUploadResponse.setKey(SAMPLE_UPLOADKEY);
+        createUploadResponse.setUploadId(SAMPLE_UPLOADID);
         Exception janClientException = new RuntimeException("mock-jan-exception");
         when(mockS3Client.initiateMultipartUpload(Mockito.any(InitiateMultipartUploadRequest.class)))
                 .thenThrow(janClientException);
@@ -244,48 +253,57 @@ public class CreateUploadHandlerTest {
     @Test
     public void testHandleGetObjectMetadata() {
 
-        CreateUploadRequestBody requestBody = createCreateUploadRequestBody();
+        CreateUploadRequestBody requestBody =
+                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         CreateUploadHandler createUploadHandler = new CreateUploadHandler(environment);
 
         ObjectMetadata objectMetadata = createUploadHandler.getObjectMetadata(requestBody);
         assertNotNull(objectMetadata);
-        requestBody.filename = null;
+        requestBody = new CreateUploadRequestBody(null, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         objectMetadata = createUploadHandler.getObjectMetadata(requestBody);
         assertNotNull(objectMetadata);
 
-        requestBody.filename = "";
+        requestBody = new CreateUploadRequestBody("", SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         objectMetadata = createUploadHandler.getObjectMetadata(requestBody);
         assertNotNull(objectMetadata);
 
-        requestBody.mimetype = null;
+
+        requestBody = new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, null);
         objectMetadata = createUploadHandler.getObjectMetadata(requestBody);
         assertNotNull(objectMetadata);
 
-        requestBody.mimetype = "";
+        requestBody = new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, "");
         objectMetadata = createUploadHandler.getObjectMetadata(requestBody);
         assertNotNull(objectMetadata);
 
-        requestBody.mimetype = "meme/type";
+        requestBody = new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, "meme/type");
         objectMetadata = createUploadHandler.getObjectMetadata(requestBody);
         assertNotNull(objectMetadata.getContentType());
 
-        requestBody.mimetype = "memetype";
+        requestBody = new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, "memetype");
         objectMetadata = createUploadHandler.getObjectMetadata(requestBody);
         assertNull(objectMetadata.getContentType());
 
 
     }
 
+    @Test
+    public void testCreateUploadRequestConstructor() {
+        CreateUploadRequestBody requestBody =
+                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
+        requestBody.setMd5hash(SAMPLE_MD5HASH);
+        assertEquals(SAMPLE_FILENAME, requestBody.getFilename());
+        assertEquals(SAMPLE_SIZE_STRING, requestBody.getSize());
+        assertEquals(SAMPLE_MIMETYPE, requestBody.getMimetype());
+        assertEquals(SAMPLE_MD5HASH, requestBody.getMd5hash());
+    }
 
 
+    private CreateUploadRequestBody createCreateUploadRequestBody(String md5hash) {
+        CreateUploadRequestBody requestInputBody =
+                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
 
-    private CreateUploadRequestBody createCreateUploadRequestBody() {
-        CreateUploadRequestBody requestInputBody = new CreateUploadRequestBody();
-
-        requestInputBody.filename = "filename";
-        requestInputBody.mimetype = "mime/type";
-        requestInputBody.size = "size";
-        requestInputBody.md5hash = "md5hash";
+        requestInputBody.setMd5hash(md5hash);
         return requestInputBody;
     }
 

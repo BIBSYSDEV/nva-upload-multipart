@@ -92,9 +92,7 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
         try {
             InitiateMultipartUploadResult initResponse = getS3Client().initiateMultipartUpload(initRequest);
             System.out.println(initResponse);
-            CreateUploadResponseBody responseBody = new CreateUploadResponseBody();
-            responseBody.uploadId = initResponse.getUploadId();
-            responseBody.key = keyName;
+            CreateUploadResponseBody responseBody = new CreateUploadResponseBody(initResponse.getUploadId(), keyName);
             response.setBody(new Gson().toJson(responseBody));
             response.setStatusCode(SC_CREATED);
         } catch (SdkClientException e) {
@@ -119,12 +117,12 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.setContentMD5(null);
 
-        if (!Objects.isNull(requestBody.filename) && !requestBody.filename.isEmpty()) {
-            objectMetadata.setContentDisposition("filename=\"" + requestBody.filename + "\"");
+        if (!Objects.isNull(requestBody.getFilename()) && !requestBody.getFilename().isEmpty()) {
+            objectMetadata.setContentDisposition("filename=\"" + requestBody.getFilename() + "\"");
         }
-        if (!(Objects.isNull(requestBody.mimetype) || requestBody.mimetype.isEmpty())
-                && requestBody.mimetype.contains("/")) {
-            objectMetadata.setContentType(requestBody.mimetype);
+        if (!(Objects.isNull(requestBody.getMimetype()) || requestBody.getMimetype().isEmpty())
+                && requestBody.getMimetype().contains("/")) {
+            objectMetadata.setContentType(requestBody.getMimetype());
         }
 
         return objectMetadata;
@@ -145,7 +143,7 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
         if (Objects.isNull(requestBody)) {
             throw new ParameterMissingException(PARAMETER_BODY_KEY);
         }
-        if (Objects.isNull(requestBody.filename)) {
+        if (Objects.isNull(requestBody.getFilename())) {
             throw new ParameterMissingException(PARAMETER_FILENAME_KEY);
         }
         return requestBody;

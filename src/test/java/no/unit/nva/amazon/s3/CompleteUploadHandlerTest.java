@@ -40,6 +40,7 @@ public class CompleteUploadHandlerTest {
 
     public static final String COMPLETE_UPLOAD_REQUEST_WITH_EMPTY_ELEMENT_JSON
             = "/CompleteRequestWithEmptyElement.json";
+    public static final String SAMPLE_KEY = "sampleKey";
 
     @Rule
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
@@ -56,13 +57,9 @@ public class CompleteUploadHandlerTest {
     }
 
     private CompleteUploadRequestBody createRequestBody() {
-        CompleteUploadRequestBody requestInputBody = new CompleteUploadRequestBody();
-        requestInputBody.key = "key";
-        requestInputBody.uploadId = "uploadId";
         List<CompleteUploadPart> partEtags = new ArrayList<>();
         partEtags.add(new CompleteUploadPart(1, "eTag1"));
-        requestInputBody.parts = partEtags;
-
+        CompleteUploadRequestBody requestInputBody = new CompleteUploadRequestBody("key", "uploadID", partEtags);
         return requestInputBody;
     }
 
@@ -161,7 +158,7 @@ public class CompleteUploadHandlerTest {
     public void testHandleFailingRequestMissingParameterUploadId() {
 
         CompleteUploadRequestBody requestInputBody = createRequestBody();
-        requestInputBody.uploadId = null;
+        requestInputBody.setUploadId(null);
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
@@ -183,7 +180,7 @@ public class CompleteUploadHandlerTest {
     public void testHandleFailingRequestMissingParameterKey() {
 
         CompleteUploadRequestBody requestInputBody = createRequestBody();
-        requestInputBody.key = null;
+        requestInputBody.setKey(null);
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
@@ -205,7 +202,7 @@ public class CompleteUploadHandlerTest {
     public void testHandleFailingRequestMissingParameterNumber() {
 
         CompleteUploadRequestBody requestInputBody = createRequestBody();
-        requestInputBody.parts = null;
+        requestInputBody.setParts(null);
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
@@ -285,7 +282,14 @@ public class CompleteUploadHandlerTest {
                 completeUploadHandler.getCompleteMultipartUploadRequest(completeUploadRequestBody);
         assertNotNull(completeMultipartUploadRequest);
 
-        assertNotEquals(completeMultipartUploadRequest.getPartETags().size(), completeUploadRequestBody.parts.size());
+        assertNotEquals(completeMultipartUploadRequest.getPartETags().size(),
+                completeUploadRequestBody.getParts().size());
+    }
+
+    @Test
+    public void testHandleRequestConstructor() {
+        CompleteUploadResponseBody completeUploadRequestBody = new CompleteUploadResponseBody(SAMPLE_KEY);
+        assertEquals(SAMPLE_KEY, completeUploadRequestBody.getKey());
     }
 
 }

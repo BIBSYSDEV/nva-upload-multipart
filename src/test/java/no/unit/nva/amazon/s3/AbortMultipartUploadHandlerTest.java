@@ -1,6 +1,5 @@
 package no.unit.nva.amazon.s3;
 
-//import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.google.gson.Gson;
@@ -88,9 +87,7 @@ public class AbortMultipartUploadHandlerTest {
     }
 
     private AbortMultipartUploadRequestBody createAbortMultipartUploadRequestBody() {
-        AbortMultipartUploadRequestBody requestInputBody = new AbortMultipartUploadRequestBody();
-        requestInputBody.uploadId = "uploadId";
-        requestInputBody.key = "key";
+        AbortMultipartUploadRequestBody requestInputBody = new AbortMultipartUploadRequestBody("uploadId", "key");
         return requestInputBody;
     }
 
@@ -143,7 +140,7 @@ public class AbortMultipartUploadHandlerTest {
     public void testHandleFailingRequestMissingParameterUploadId() {
 
         AbortMultipartUploadRequestBody requestInputBody = createAbortMultipartUploadRequestBody();
-        requestInputBody.uploadId = null;
+        requestInputBody.setUploadId(null);
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
@@ -163,7 +160,7 @@ public class AbortMultipartUploadHandlerTest {
     public void testHandleFailingRequestMissingParameterKey() {
 
         AbortMultipartUploadRequestBody requestInputBody = createAbortMultipartUploadRequestBody();
-        requestInputBody.key = null;
+        requestInputBody.setKey(null);
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));

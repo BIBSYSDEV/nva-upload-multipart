@@ -83,7 +83,7 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
         }
 
         AbortMultipartUploadRequest abortMultipartUploadRequest =
-                new AbortMultipartUploadRequest(bucketName, requestBody.key, requestBody.uploadId);
+                new AbortMultipartUploadRequest(bucketName, requestBody.getKey(), requestBody.getUploadId());
 
         try {
             getS3Client().abortMultipartUpload(abortMultipartUploadRequest);
@@ -121,10 +121,10 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
         if (Objects.isNull(requestBody)) {
             throw new ParameterMissingException(PARAMETER_BODY_KEY);
         }
-        if (Objects.isNull(requestBody.uploadId)) {
+        if (Objects.isNull(requestBody.getUploadId())) {
             throw new ParameterMissingException(PARAMETER_UPLOAD_ID_KEY);
         }
-        if (Objects.isNull(requestBody.key)) {
+        if (Objects.isNull(requestBody.getKey())) {
             throw new ParameterMissingException(PARAMETER_KEY_KEY);
         }
         return requestBody;

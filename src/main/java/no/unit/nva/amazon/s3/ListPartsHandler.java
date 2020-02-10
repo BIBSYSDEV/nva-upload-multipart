@@ -83,7 +83,8 @@ public class ListPartsHandler implements RequestHandler<Map<String, Object>, Gat
 
         try {
 
-            ListPartsRequest listPartsRequest = new ListPartsRequest(bucketName, requestBody.key, requestBody.uploadId);
+            ListPartsRequest listPartsRequest =
+                    new ListPartsRequest(bucketName, requestBody.getKey(), requestBody.getUploadId());
 
             List<ListPartsElement> listPartsElements = new ArrayList<>();
 
@@ -91,9 +92,7 @@ public class ListPartsHandler implements RequestHandler<Map<String, Object>, Gat
             PartListing partListing = s3Client.listParts(listPartsRequest);
             while (!allPartsRead) {
                 List<PartSummary> partSummaries = partListing.getParts();
-                for (PartSummary partSummary : partSummaries) {
-                    listPartsElements.add(new ListPartsElement(partSummary));
-                }
+                partSummaries.stream().map(ListPartsElement::new).forEach(listPartsElements::add);
                 if (partListing.isTruncated()) {
                     Integer partNumberMarker = partListing.getNextPartNumberMarker();
                     listPartsRequest.setPartNumberMarker(partNumberMarker);
@@ -134,10 +133,10 @@ public class ListPartsHandler implements RequestHandler<Map<String, Object>, Gat
         if (Objects.isNull(requestBody)) {
             throw new ParameterMissingException(PARAMETER_BODY_KEY);
         }
-        if (Objects.isNull(requestBody.uploadId)) {
+        if (Objects.isNull(requestBody.getUploadId())) {
             throw new ParameterMissingException(PARAMETER_UPLOAD_ID_KEY);
         }
-        if (Objects.isNull(requestBody.key)) {
+        if (Objects.isNull(requestBody.getKey())) {
             throw new ParameterMissingException(PARAMETER_KEY_KEY);
         }
         return requestBody;

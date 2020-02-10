@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
 import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
@@ -90,8 +91,8 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
             CompleteMultipartUploadResult uploadResult =
                     s3Client.completeMultipartUpload(completeMultipartUploadRequest);
             System.out.println(uploadResult);
-            CompleteUploadResponseBody completeUploadResponseBody = new CompleteUploadResponseBody();
-            completeUploadResponseBody.key = requestBody.key;
+            CompleteUploadResponseBody completeUploadResponseBody =
+                    new CompleteUploadResponseBody(requestBody.getKey());
             response.setBody(new Gson().toJson(completeUploadResponseBody));
             response.setStatusCode(SC_OK);
             System.out.println(response);
@@ -118,25 +119,19 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
     public CompleteMultipartUploadRequest getCompleteMultipartUploadRequest(CompleteUploadRequestBody requestBody) {
         CompleteMultipartUploadRequest completeMultipartUploadRequest = new CompleteMultipartUploadRequest();
         completeMultipartUploadRequest.setBucketName(bucketName);
-        completeMultipartUploadRequest.setKey(requestBody.key);
-        completeMultipartUploadRequest.setUploadId(requestBody.uploadId);
+        completeMultipartUploadRequest.setKey(requestBody.getKey());
+        completeMultipartUploadRequest.setUploadId(requestBody.getUploadId());
+
         List<PartETag> partETags = new ArrayList<>();
-        for (CompleteUploadPart part : requestBody.parts) {
-            if (hasValue(part)) {
-                PartETag partETag = new PartETag(part.getPartNumber(), part.getEtag());
-                partETags.add(partETag);
-            } else {
-                System.out.println("Skipping empty PartETag in request");
-            }
-        }
+        requestBody.getParts().stream()
+                .filter(CompleteUploadPart::hasValue)
+                .map(part -> new PartETag(part.getPartNumber(), part.getEtag()))
+                .collect(Collectors.toList());
+
         completeMultipartUploadRequest.setPartETags(partETags);
         return completeMultipartUploadRequest;
     }
 
-    private boolean hasValue(CompleteUploadPart part) {
-        boolean notEnoughData  = Objects.isNull(part)  || Objects.isNull(part.getEtag()) || part.getEtag().isEmpty();
-        return !notEnoughData;
-    }
 
     /**
      * Checking inputparameters from api-gateway.
@@ -154,13 +149,13 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
         if (Objects.isNull(requestBody)) {
             throw new ParameterMissingException(PARAMETER_BODY_KEY);
         }
-        if (Objects.isNull(requestBody.key)) {
+        if (Objects.isNull(requestBody.getKey())) {
             throw new ParameterMissingException(PARAMETER_KEY_KEY);
         }
-        if (Objects.isNull(requestBody.uploadId)) {
+        if (Objects.isNull(requestBody.getUploadId())) {
             throw new ParameterMissingException(PARAMETER_UPLOAD_ID_KEY);
         }
-        if (Objects.isNull(requestBody.parts)) {
+        if (Objects.isNull(requestBody.getParts())) {
             throw new ParameterMissingException(PARAMETER_PART_E_TAGS_KEY);
         }
         return requestBody;
@@ -172,5 +167,4 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
         headers.put(CONTENT_TYPE, APPLICATION_JSON.getMimeType());
         return headers;
     }
-
 }

@@ -86,17 +86,18 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
 
 
             GeneratePresignedUrlRequest predesignedUrlUploadRequest =
-                    new GeneratePresignedUrlRequest(bucketName, requestBody.key)
+                    new GeneratePresignedUrlRequest(bucketName, requestBody.getKey())
                             .withMethod(HttpMethod.PUT);
-            predesignedUrlUploadRequest.addRequestParameter(PARAMETER_UPLOAD_ID_KEY, requestBody.uploadId);
-            predesignedUrlUploadRequest.addRequestParameter(PARAMETER_PART_NUMBER_KEY, requestBody.number);
+            predesignedUrlUploadRequest.addRequestParameter(PARAMETER_UPLOAD_ID_KEY, requestBody.getUploadId());
+            predesignedUrlUploadRequest.addRequestParameter(PARAMETER_PART_NUMBER_KEY, requestBody.getNumber());
 
             URL predesignedUloadUrl = s3Client.generatePresignedUrl(predesignedUrlUploadRequest);
 
 
             System.out.println(predesignedUloadUrl);
-            PrepareUploadPartResponseBody prepareUploadPartResponseBody = new PrepareUploadPartResponseBody();
-            prepareUploadPartResponseBody.url = predesignedUloadUrl;
+            PrepareUploadPartResponseBody prepareUploadPartResponseBody =
+                    new PrepareUploadPartResponseBody(predesignedUloadUrl);
+
             response.setBody(new Gson().toJson(prepareUploadPartResponseBody));
             response.setStatusCode(SC_OK);
             System.out.println(response);
@@ -128,13 +129,13 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
         if (Objects.isNull(requestBody)) {
             throw new ParameterMissingException(PARAMETER_BODY_KEY);
         }
-        if (Objects.isNull(requestBody.uploadId)) {
+        if (Objects.isNull(requestBody.getUploadId())) {
             throw new ParameterMissingException(PARAMETER_UPLOAD_ID_KEY);
         }
-        if (Objects.isNull(requestBody.key)) {
+        if (Objects.isNull(requestBody.getKey())) {
             throw new ParameterMissingException(PARAMETER_KEY_KEY);
         }
-        if (Objects.isNull(requestBody.number)) {
+        if (Objects.isNull(requestBody.getNumber())) {
             throw new ParameterMissingException(PARAMETER_NUMBER_KEY);
         }
         return requestBody;

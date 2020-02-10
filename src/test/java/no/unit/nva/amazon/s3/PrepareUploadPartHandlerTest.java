@@ -32,6 +32,10 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings({"checkstyle:javadoctype", "checkstyle:MissingJavadocMethod"})
 public class PrepareUploadPartHandlerTest {
 
+    public static final String SAMPLE_KEY = "key";
+    public static final String SAMPLE_UPLOADID = "uploadId";
+    public static final String SAMPLE_BODY = "body";
+    public static final String SAMPLE_PART_NUMBER = "1";
     @Rule
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
     private Environment environment;
@@ -47,11 +51,8 @@ public class PrepareUploadPartHandlerTest {
     }
 
     private PrepareUploadPartRequestBody createRequestBody() {
-        PrepareUploadPartRequestBody requestInputBody = new PrepareUploadPartRequestBody();
-        requestInputBody.key = "key";
-        requestInputBody.uploadId = "uploadId";
-        requestInputBody.body = "body";
-        requestInputBody.number = "1";
+        PrepareUploadPartRequestBody requestInputBody =
+                new PrepareUploadPartRequestBody(SAMPLE_UPLOADID, SAMPLE_KEY, SAMPLE_BODY, SAMPLE_PART_NUMBER);
         return requestInputBody;
     }
     
@@ -92,7 +93,7 @@ public class PrepareUploadPartHandlerTest {
         assertNotNull(response.getBody());
         final PrepareUploadPartResponseBody responseBody =
                 new Gson().fromJson(response.getBody(), PrepareUploadPartResponseBody.class);
-        assertNotNull(responseBody.url);
+        assertNotNull(responseBody.getUrl());
 
     }
 
@@ -151,8 +152,9 @@ public class PrepareUploadPartHandlerTest {
     @Test
     public void testHandleFailingRequestMissingParameterUploadId() {
 
-        PrepareUploadPartRequestBody requestInputBody = createRequestBody();
-        requestInputBody.uploadId = null;
+        PrepareUploadPartRequestBody requestInputBody
+                = new PrepareUploadPartRequestBody(null, SAMPLE_KEY, SAMPLE_BODY, SAMPLE_PART_NUMBER);
+
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
@@ -173,8 +175,9 @@ public class PrepareUploadPartHandlerTest {
     @Test
     public void testHandleFailingRequestMissingParameterKey() {
 
-        PrepareUploadPartRequestBody requestInputBody = createRequestBody();
-        requestInputBody.key = null;
+        PrepareUploadPartRequestBody requestInputBody =
+                new PrepareUploadPartRequestBody(SAMPLE_UPLOADID, null, SAMPLE_BODY, SAMPLE_PART_NUMBER);
+
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
@@ -195,8 +198,9 @@ public class PrepareUploadPartHandlerTest {
     @Test
     public void testHandleFailingRequestMissingParameterNumber() {
 
-        PrepareUploadPartRequestBody requestInputBody = createRequestBody();
-        requestInputBody.number = null;
+        PrepareUploadPartRequestBody requestInputBody =
+                new PrepareUploadPartRequestBody(SAMPLE_UPLOADID, SAMPLE_KEY, SAMPLE_BODY, null);
+
 
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
@@ -262,5 +266,14 @@ public class PrepareUploadPartHandlerTest {
         assertNotNull(response.getBody());
     }
 
+    @Test
+    public void testPrepareUploadRequestBodyConstructor() {
+        PrepareUploadPartRequestBody requestInputBody =
+                new PrepareUploadPartRequestBody(SAMPLE_UPLOADID, SAMPLE_KEY, SAMPLE_BODY, SAMPLE_PART_NUMBER);
+        assertEquals(SAMPLE_UPLOADID, requestInputBody.getUploadId());
+        assertEquals(SAMPLE_KEY, requestInputBody.getKey());
+        assertEquals(SAMPLE_BODY, requestInputBody.getBody());
+        assertEquals(SAMPLE_PART_NUMBER, requestInputBody.getNumber());
+    }
 
 }
