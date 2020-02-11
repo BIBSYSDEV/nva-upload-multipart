@@ -32,14 +32,18 @@ import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings({"checkstyle:javadoctype", "checkstyle:MissingJavadocMethod"})
 public class CompleteUploadHandlerTest {
 
-    public static final String COMPLETE_UPLOAD_REQUEST_WITH_EMPTY_ELEMENT_JSON
+    private static final String COMPLETE_UPLOAD_REQUEST_WITH_EMPTY_ELEMENT_JSON
             = "/CompleteRequestWithEmptyElement.json";
+
+    private static final String COMPLETE_UPLOAD_REQUEST_WITH_ONE_PART_JSON
+            = "/CompleteRequestWithOnePart.json";
     public static final String SAMPLE_KEY = "sampleKey";
 
     @Rule
@@ -285,6 +289,29 @@ public class CompleteUploadHandlerTest {
         assertNotEquals(completeMultipartUploadRequest.getPartETags().size(),
                 completeUploadRequestBody.getParts().size());
     }
+
+    @Test
+    public void testHandleRequestWithOnePart() {
+        InputStream stream =
+                CompleteUploadHandlerTest.class.getResourceAsStream(COMPLETE_UPLOAD_REQUEST_WITH_ONE_PART_JSON);
+        final CompleteUploadRequestBody completeUploadRequestBody = new Gson().fromJson(new InputStreamReader(stream),
+                CompleteUploadRequestBody.class);
+        assertNotNull(completeUploadRequestBody);
+        assertNotNull(completeUploadRequestBody.getParts());
+        assertTrue(completeUploadRequestBody.getParts().size() == 1);
+
+        AmazonS3 mockS3Client = mock(AmazonS3.class);
+        CompleteUploadHandler completeUploadHandler = new CompleteUploadHandler(environment, mockS3Client);
+
+        final CompleteMultipartUploadRequest completeMultipartUploadRequest =
+                completeUploadHandler.getCompleteMultipartUploadRequest(completeUploadRequestBody);
+        assertNotNull(completeMultipartUploadRequest);
+
+        assertEquals(completeMultipartUploadRequest.getPartETags().size(),
+                completeUploadRequestBody.getParts().size());
+    }
+
+
 
     @Test
     public void testHandleRequestConstructor() {

@@ -11,7 +11,6 @@ import com.amazonaws.services.s3.model.PartETag;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -125,8 +124,7 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
         completeMultipartUploadRequest.setKey(requestBody.getKey());
         completeMultipartUploadRequest.setUploadId(requestBody.getUploadId());
 
-        List<PartETag> partETags = new ArrayList<>();
-        requestBody.getParts().stream()
+        List<PartETag> partETags = requestBody.getParts().stream()
                 .filter(CompleteUploadPart::hasValue)
                 .map(part -> new PartETag(part.getPartNumber(), part.getEtag()))
                 .collect(Collectors.toList());
