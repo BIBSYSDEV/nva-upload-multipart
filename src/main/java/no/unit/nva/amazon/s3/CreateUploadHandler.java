@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
+import static no.unit.nva.amazon.s3.Environment.MISSING_ENV_TEXT;
 import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
 import static no.unit.nva.amazon.s3.GatewayResponse.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
@@ -31,6 +32,7 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
     public static final String PARAMETER_BODY_KEY = "body";
     public static final String PARAMETER_FILENAME_KEY = "filename";
     public static final String PARAMETER_INPUT_KEY = "input";
+
     private static final AmazonS3 s3Client = createAmazonS3Client();
     public final transient String bucketName;
     private final transient String allowedOrigin;
@@ -45,8 +47,11 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
      * Construct for lambda eventhandler to create an upload request for S3.
      */
     public CreateUploadHandler(Environment environment) {
-        this.allowedOrigin = environment.get(ALLOWED_ORIGIN_KEY).orElseThrow(IllegalStateException::new);
-        this.bucketName = environment.get(S3_UPLOAD_BUCKET_KEY).orElseThrow(IllegalStateException::new);
+        this.allowedOrigin = environment.get(ALLOWED_ORIGIN_KEY)
+                .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,ALLOWED_ORIGIN_KEY)));
+        this.bucketName = environment.get(S3_UPLOAD_BUCKET_KEY)
+                .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,S3_UPLOAD_BUCKET_KEY)));
+
 
     }
 
@@ -83,13 +88,13 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
             return response;
         }
 
-        ObjectMetadata objectMetadata = getObjectMetadata(requestBody);
-
-        String keyName = UUID.randomUUID().toString();
-        InitiateMultipartUploadRequest initRequest =
-                new InitiateMultipartUploadRequest(bucketName, keyName, objectMetadata);
 
         try {
+            ObjectMetadata objectMetadata = getObjectMetadata(requestBody);
+
+            String keyName = UUID.randomUUID().toString();
+            InitiateMultipartUploadRequest initRequest =
+                    new InitiateMultipartUploadRequest(bucketName, keyName, objectMetadata);
             InitiateMultipartUploadResult initResponse = getS3Client().initiateMultipartUpload(initRequest);
             System.out.println(initResponse);
             CreateUploadResponseBody responseBody = new CreateUploadResponseBody(initResponse.getUploadId(), keyName);

@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
+import static no.unit.nva.amazon.s3.Environment.MISSING_ENV_TEXT;
 import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
 import static no.unit.nva.amazon.s3.GatewayResponse.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
@@ -45,8 +46,10 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
      * Construct for lambda eventhandler to create an upload request for S3.
      */
     public AbortMultipartUploadHandler(Environment environment) {
-        this.allowedOrigin = environment.get(ALLOWED_ORIGIN_KEY).orElseThrow(IllegalStateException::new);
-        this.bucketName = environment.get(S3_UPLOAD_BUCKET_KEY).orElseThrow(IllegalStateException::new);
+        this.allowedOrigin = environment.get(ALLOWED_ORIGIN_KEY)
+                .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,ALLOWED_ORIGIN_KEY)));
+        this.bucketName = environment.get(S3_UPLOAD_BUCKET_KEY)
+                .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,S3_UPLOAD_BUCKET_KEY)));
     }
 
     private static AmazonS3 createAmazonS3Client() {
@@ -82,10 +85,9 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
             return response;
         }
 
-        AbortMultipartUploadRequest abortMultipartUploadRequest =
-                new AbortMultipartUploadRequest(bucketName, requestBody.getKey(), requestBody.getUploadId());
-
         try {
+            AbortMultipartUploadRequest abortMultipartUploadRequest =
+                    new AbortMultipartUploadRequest(bucketName, requestBody.getKey(), requestBody.getUploadId());
             getS3Client().abortMultipartUpload(abortMultipartUploadRequest);
             SimpleMessageResponse  message = new SimpleMessageResponse(MULTIPART_UPLOAD_ABORTED_MESSAGE);
             response.setBody(new Gson().toJson(message));
@@ -102,6 +104,7 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
             System.out.println(response);
             return response;
         }
+
         return response;
     }
 

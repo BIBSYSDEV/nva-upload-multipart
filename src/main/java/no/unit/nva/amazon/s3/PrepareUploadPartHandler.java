@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
+import static no.unit.nva.amazon.s3.Environment.MISSING_ENV_TEXT;
 import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
 import static no.unit.nva.amazon.s3.GatewayResponse.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
@@ -50,8 +51,10 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
      * Construct for lambda eventhandler to create an upload request for S3.
      */
     public PrepareUploadPartHandler(Environment environment, AmazonS3 s3Client) {
-        this.allowedOrigin = environment.get(ALLOWED_ORIGIN_KEY).orElseThrow(IllegalStateException::new);
-        this.bucketName = environment.get(S3_UPLOAD_BUCKET_KEY).orElseThrow(IllegalStateException::new);
+        this.allowedOrigin = environment.get(ALLOWED_ORIGIN_KEY)
+                .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,ALLOWED_ORIGIN_KEY)));
+        this.bucketName = environment.get(S3_UPLOAD_BUCKET_KEY)
+                .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,S3_UPLOAD_BUCKET_KEY)));
         this.s3Client = s3Client;
     }
 
