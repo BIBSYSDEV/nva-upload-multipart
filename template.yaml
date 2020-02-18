@@ -15,6 +15,7 @@ Parameters:
   CognitoAuthorizerArn:
     Type: String
     Description: Reference to Cognito UserPool for the stage
+    Default: '{{resolve:ssm:CognitoAuthorizerArn:2}}'
   CustomDomain:
     Type: String
     Description: Custom API to connect this lambda to
