@@ -16,6 +16,6 @@ phases:
     commands:
       - sam publish --template packaged.yaml
 
-#artifacts:
-#  files:
-#    - packaged.yaml
+artifacts:
+  files:
+    - packaged.yaml
