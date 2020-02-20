@@ -2,6 +2,17 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Backend for uploading files to Amazon S3 via Uppy / Companion.
 
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: NVA Multipart upload
+    Description: Backend for uploading files to Amazon S3 via Uppy / Companion.
+    Author: Unit
+    SemanticVersion: 1.0.0
+    SpdxLicenseId: MIT
+    LicenseUrl: LICENSE
+
+
+
 Globals:
   Function:
     Timeout: 20
