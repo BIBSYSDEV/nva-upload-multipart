@@ -11,11 +11,11 @@ phases:
     commands:
       # Use AWS SAM to build and package the application by using AWS CloudFormation
       - sam build --debug
-      - sam package --debug --template-file .aws-sam/build/template.yaml --s3-bucket $S3_BUCKET --output-template-file packaged.yaml --force-upload
+      - sam package --debug --template-file .aws-sam/build/template.yaml --s3-bucket $S3_BUCKET --output-template-file sampackaged.yaml --force-upload
   post_build:
     commands:
-      - sam publish --template packaged.yaml
+      - sam publish --template sampackaged.yaml
 
 artifacts:
   files:
-    - packaged.yaml
+    - sampackaged.yaml
