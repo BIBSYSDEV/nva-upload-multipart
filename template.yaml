@@ -4,7 +4,7 @@ Description: Backend for uploading files to Amazon S3 via Uppy / Companion.
 
 Metadata:
   AWS::ServerlessRepo::Application:
-    Name: NVA Multipart upload
+    Name: NVA-Multipart-upload
     Description: Backend for uploading files to Amazon S3 via Uppy / Companion.
     Author: Unit
     SemanticVersion: 1.0.0
