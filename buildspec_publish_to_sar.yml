@@ -14,6 +14,7 @@ phases:
       - sam package --debug --template-file .aws-sam/build/template.yaml --s3-bucket $S3_BUCKET --output-template-file sampackaged.yaml --force-upload
   post_build:
     commands:
+      # publishing to SAR
       - sam publish --template sampackaged.yaml
 
 artifacts:
