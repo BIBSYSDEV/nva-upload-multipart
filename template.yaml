@@ -11,8 +11,6 @@ Metadata:
     SpdxLicenseId: MIT
     LicenseUrl: LICENSE
 
-
-
 Globals:
   Function:
     Timeout: 20
