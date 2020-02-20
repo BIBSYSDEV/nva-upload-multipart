@@ -382,7 +382,7 @@ Resources:
       Runtime: java8
       MemorySize: 512
       Layers:
-        - Ref: MultipartUploadLayer
+        - !Ref MultipartUploadLayer
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         CreateEvent:
@@ -403,7 +403,7 @@ Resources:
       Runtime: java8
       MemorySize: 512
       Layers:
-        - Ref: MultipartUploadLayer
+        - !Ref MultipartUploadLayer
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         ListEvent:
@@ -424,7 +424,7 @@ Resources:
       Runtime: java8
       MemorySize: 512
       Layers:
-        - Ref: MultipartUploadLayer
+        - !Ref MultipartUploadLayer
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         PrepareEvent:
@@ -445,7 +445,7 @@ Resources:
       Runtime: java8
       MemorySize: 512
       Layers:
-        - Ref: MultipartUploadLayer
+        - !Ref MultipartUploadLayer
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         AbortEvent:
@@ -466,7 +466,7 @@ Resources:
       Runtime: java8
       MemorySize: 512
       Layers:
-        - Ref: MultipartUploadLayer
+        - !Ref MultipartUploadLayer
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         CompleteEvent:
