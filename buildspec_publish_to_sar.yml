@@ -1,0 +1,21 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+    commands:
+      - pip3 install aws-sam-cli
+
+  build:
+    commands:
+      # Use AWS SAM to build and package the application by using AWS CloudFormation
+      - sam build --debug
+      - sam package --debug --template-file .aws-sam/build/template.yaml --s3-bucket $S3_BUCKET --output-template-file packaged.yaml --force-upload
+  post_build:
+    commands:
+      - sam publish --template packaged.yaml
+
+#artifacts:
+#  files:
+#    - packaged.yaml
