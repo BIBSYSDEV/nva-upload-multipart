@@ -3,7 +3,6 @@ plugins {
     id 'checkstyle'
     id 'pmd'
     id 'jacoco'
-    id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 group 'no.unit.nva'
@@ -30,10 +29,6 @@ dependencies {
     testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
     testImplementation group: 'commons-io', name: 'commons-io', version: '2.6'
 
-//    shadowJar {
-//        archiveClassifier.set('')
-//        zip64 true
-//    }
 }
 
 task buildZip(type: Zip) {
@@ -55,7 +50,6 @@ test {
 
 // We don't want a jar, just a fatJar
 //jar.enabled = false
-//project.tasks.build.dependsOn project.tasks.shadowJar
 
 pmd {
     ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
