@@ -381,8 +381,8 @@ Resources:
       Handler: no.unit.nva.amazon.s3.CreateUploadHandler::handleRequest
       Runtime: java8
       MemorySize: 512
-      Layers:
-        - !Ref MultipartUploadLayer
+#      Layers:
+#        - !Ref MultipartUploadLayer
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         CreateEvent:
@@ -402,8 +402,8 @@ Resources:
       Handler: no.unit.nva.amazon.s3.ListPartsHandler::handleRequest
       Runtime: java8
       MemorySize: 512
-      Layers:
-        - !Ref MultipartUploadLayer
+#      Layers:
+#        - !Ref MultipartUploadLayer
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         ListEvent:
@@ -423,8 +423,8 @@ Resources:
       Handler: no.unit.nva.amazon.s3.PrepareUploadPartHandler::handleRequest
       Runtime: java8
       MemorySize: 512
-      Layers:
-        - !Ref MultipartUploadLayer
+#      Layers:
+#        - !Ref MultipartUploadLayer
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         PrepareEvent:
@@ -444,8 +444,8 @@ Resources:
       Handler: no.unit.nva.amazon.s3.AbortMultipartUploadHandler::handleRequest
       Runtime: java8
       MemorySize: 512
-      Layers:
-        - !Ref MultipartUploadLayer
+#      Layers:
+#        - !Ref MultipartUploadLayer
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         AbortEvent:
@@ -465,8 +465,8 @@ Resources:
       Handler: no.unit.nva.amazon.s3.CompleteUploadHandler::handleRequest
       Runtime: java8
       MemorySize: 512
-      Layers:
-        - !Ref MultipartUploadLayer
+#      Layers:
+#        - !Ref MultipartUploadLayer
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         CompleteEvent:
@@ -512,13 +512,13 @@ Resources:
                   - arn:aws:s3:::nva-storage-develop
                   - arn:aws:s3:::nva-storage-develop/*
 
-  MultipartUploadLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: MultipartUploadLayer
-      Description: Common libs used in multpart upload
-      ContentUri: './'
-      CompatibleRuntimes:
-        - java8
-      LicenseInfo: LICENCE
-      RetentionPolicy: Delete
+#  MultipartUploadLayer:
+#    Type: AWS::Serverless::LayerVersion
+#    Properties:
+#      LayerName: MultipartUploadLayer
+#      Description: Common libs used in multpart upload
+#      ContentUri: './'
+#      CompatibleRuntimes:
+#        - java8
+#      LicenseInfo: LICENCE
+#      RetentionPolicy: Delete
