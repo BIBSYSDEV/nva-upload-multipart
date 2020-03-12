@@ -4,8 +4,8 @@ Description: Backend for uploading files to Amazon S3 via Uppy / Companion.
 
 Metadata:
   AWS::ServerlessRepo::Application:
-    Name: NVA-Multipart-upload
-    Description: Backend for uploading files to Amazon S3 via Uppy / Companion.
+    Name: UploadMultipart
+    Description: Backend for uploading files to Amazon S3
     Author: Unit
     SemanticVersion: 1.0.0
     SpdxLicenseId: MIT
@@ -379,7 +379,7 @@ Resources:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.amazon.s3.CreateUploadHandler::handleRequest
-      Runtime: java8
+      Runtime: java11
       MemorySize: 512
 #      Layers:
 #        - !Ref MultipartUploadLayer
@@ -400,7 +400,7 @@ Resources:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.amazon.s3.ListPartsHandler::handleRequest
-      Runtime: java8
+      Runtime: java11
       MemorySize: 512
 #      Layers:
 #        - !Ref MultipartUploadLayer
@@ -421,7 +421,7 @@ Resources:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.amazon.s3.PrepareUploadPartHandler::handleRequest
-      Runtime: java8
+      Runtime: java11
       MemorySize: 512
 #      Layers:
 #        - !Ref MultipartUploadLayer
@@ -442,7 +442,7 @@ Resources:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.amazon.s3.AbortMultipartUploadHandler::handleRequest
-      Runtime: java8
+      Runtime: java11
       MemorySize: 512
 #      Layers:
 #        - !Ref MultipartUploadLayer
@@ -463,7 +463,7 @@ Resources:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.amazon.s3.CompleteUploadHandler::handleRequest
-      Runtime: java8
+      Runtime: java11
       MemorySize: 512
 #      Layers:
 #        - !Ref MultipartUploadLayer
@@ -512,13 +512,3 @@ Resources:
                   - arn:aws:s3:::nva-storage-develop
                   - arn:aws:s3:::nva-storage-develop/*
 
-#  MultipartUploadLayer:
-#    Type: AWS::Serverless::LayerVersion
-#    Properties:
-#      LayerName: MultipartUploadLayer
-#      Description: Common libs used in multpart upload
-#      ContentUri: './'
-#      CompatibleRuntimes:
-#        - java8
-#      LicenseInfo: LICENCE
-#      RetentionPolicy: Delete
