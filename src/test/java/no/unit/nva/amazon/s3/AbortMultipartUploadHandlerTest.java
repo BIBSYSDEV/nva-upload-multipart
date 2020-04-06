@@ -29,6 +29,7 @@ import static org.mockito.Mockito.mock;
 public class AbortMultipartUploadHandlerTest {
 
     public static final String BUCKET_NAME = "bucket";
+    private Environment environment;
 
     /**
      * Setup test env.
@@ -41,8 +42,7 @@ public class AbortMultipartUploadHandlerTest {
     }
 
     @Rule
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-    private Environment environment;
+    public final EnvironmentVariables environmentVariables  = new EnvironmentVariables();
 
     @Test
     public void testDefaultConstructor() {
