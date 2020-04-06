@@ -53,8 +53,7 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
     }
 
     private static AmazonS3 createAmazonS3Client() {
-        return AmazonS3ClientBuilder.standard()
-                .build();
+        return AmazonS3ClientBuilder.standard().build();
     }
 
     public  AmazonS3 getS3Client() {

@@ -76,8 +76,7 @@ public class AbortMultipartUploadHandlerTest {
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
 
         AmazonS3 mockS3Client =  mock(AmazonS3.class);
-        AbortMultipartUploadHandler abortMultipartUploadHandler =
-                Mockito.spy(new AbortMultipartUploadHandler(environment));
+        AbortMultipartUploadHandler abortMultipartUploadHandler = new AbortMultipartUploadHandler(environment);
         Mockito.doReturn(mockS3Client).when(abortMultipartUploadHandler).getS3Client();
         final GatewayResponse response = abortMultipartUploadHandler.handleRequest(requestInput, null);
 
@@ -103,8 +102,7 @@ public class AbortMultipartUploadHandlerTest {
 
         AmazonS3Exception amazonS3Exception = new AmazonS3Exception("mock-exception");
 
-        AbortMultipartUploadHandler abortMultipartUploadHandler =
-                Mockito.spy(new AbortMultipartUploadHandler(environment));
+        AbortMultipartUploadHandler abortMultipartUploadHandler = new AbortMultipartUploadHandler(environment);
         Mockito.doReturn(mockS3Client).when(abortMultipartUploadHandler).getS3Client();
         doThrow(amazonS3Exception).when(mockS3Client).abortMultipartUpload(Mockito.any());
 
@@ -123,8 +121,7 @@ public class AbortMultipartUploadHandlerTest {
 
         ParameterMissingException  parameterMissingException = new ParameterMissingException("mock-exception");
 
-        AbortMultipartUploadHandler abortMultipartUploadHandler =
-                Mockito.spy(new AbortMultipartUploadHandler(environment));
+        AbortMultipartUploadHandler abortMultipartUploadHandler = new AbortMultipartUploadHandler(environment);
         Mockito.doReturn(mockS3Client).when(abortMultipartUploadHandler).getS3Client();
         doThrow(parameterMissingException).when(abortMultipartUploadHandler)
                 .handleRequest(Mockito.anyMap(), Mockito.any());
@@ -146,8 +143,7 @@ public class AbortMultipartUploadHandlerTest {
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
 
         AmazonS3 mockS3Client =  mock(AmazonS3.class);
-        AbortMultipartUploadHandler abortMultipartUploadHandler =
-                Mockito.spy(new AbortMultipartUploadHandler(environment));
+        AbortMultipartUploadHandler abortMultipartUploadHandler = new AbortMultipartUploadHandler(environment);
         Mockito.doReturn(mockS3Client).when(abortMultipartUploadHandler).getS3Client();
         final GatewayResponse response = abortMultipartUploadHandler.handleRequest(requestInput, null);
 
@@ -166,8 +162,7 @@ public class AbortMultipartUploadHandlerTest {
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
 
         AmazonS3 mockS3Client =  mock(AmazonS3.class);
-        AbortMultipartUploadHandler abortMultipartUploadHandler =
-                Mockito.spy(new AbortMultipartUploadHandler(environment));
+        AbortMultipartUploadHandler abortMultipartUploadHandler = new AbortMultipartUploadHandler(environment);
         Mockito.doReturn(mockS3Client).when(abortMultipartUploadHandler).getS3Client();
         final GatewayResponse response = abortMultipartUploadHandler.handleRequest(requestInput, null);
 
@@ -187,8 +182,7 @@ public class AbortMultipartUploadHandlerTest {
 
         AmazonS3 mockS3Client =  mock(AmazonS3.class);
         Exception unmappedRuntimeException  = new RuntimeException("unmapped-mock-exception");
-        AbortMultipartUploadHandler abortMultipartUploadHandler =
-                Mockito.spy(new AbortMultipartUploadHandler(environment));
+        AbortMultipartUploadHandler abortMultipartUploadHandler = new AbortMultipartUploadHandler(environment);
         Mockito.doReturn(mockS3Client).when(abortMultipartUploadHandler).getS3Client();
         Mockito.doThrow(unmappedRuntimeException).when(abortMultipartUploadHandler).checkParameters(Mockito.anyMap());
         final GatewayResponse response = abortMultipartUploadHandler.handleRequest(requestInput, null);
@@ -213,8 +207,7 @@ public class AbortMultipartUploadHandlerTest {
 
         Exception otherException = new RuntimeException("mock-jan-exception");
 
-        AbortMultipartUploadHandler abortMultipartUploadHandler =
-                Mockito.spy(new AbortMultipartUploadHandler(environment));
+        AbortMultipartUploadHandler abortMultipartUploadHandler = new AbortMultipartUploadHandler(environment);
         Mockito.doReturn(mockS3Client).when(abortMultipartUploadHandler).getS3Client();
         Mockito.doThrow(otherException).when(mockS3Client).abortMultipartUpload(Mockito.any());
 
