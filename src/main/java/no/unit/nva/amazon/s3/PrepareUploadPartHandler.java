@@ -2,6 +2,7 @@ package no.unit.nva.amazon.s3;
 
 
 import com.amazonaws.HttpMethod;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
@@ -58,8 +59,9 @@ public class PrepareUploadPartHandler implements RequestHandler<Map<String, Obje
         this.s3Client = s3Client;
     }
 
-    public static AmazonS3 createAmazonS3Client() {
+    private static AmazonS3 createAmazonS3Client() {
         return AmazonS3ClientBuilder.standard()
+                .withRegion(Regions.EU_WEST_1)
                 .build();
     }
 

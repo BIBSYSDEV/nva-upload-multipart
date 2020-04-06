@@ -72,7 +72,7 @@ public class CompleteUploadHandlerTest {
     public void testDefaultConstructor() {
         environmentVariables.set(ALLOWED_ORIGIN_KEY, ALLOWED_ORIGIN_KEY);
         environmentVariables.set(S3_UPLOAD_BUCKET_KEY, S3_UPLOAD_BUCKET_KEY);
-        CompleteUploadHandler completeUploadHandler = new CompleteUploadHandler();
+        CompleteUploadHandler completeUploadHandler = new  CompleteUploadHandler();
         assertNotNull(completeUploadHandler);
     }
 
