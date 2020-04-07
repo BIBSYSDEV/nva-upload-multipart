@@ -12,7 +12,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Type;
@@ -61,6 +60,7 @@ public class ListPartsHandlerTest {
     public void testDefaultConstructor() {
         environmentVariables.set(ALLOWED_ORIGIN_KEY, ALLOWED_ORIGIN_KEY);
         environmentVariables.set(S3_UPLOAD_BUCKET_KEY, S3_UPLOAD_BUCKET_KEY);
+        environmentVariables.set(Environment.AWS_REGION_KEY, Environment.DEFAULT_AWS_REGION);
         ListPartsHandler listPartsHandler = new ListPartsHandler();
         assertNotNull(listPartsHandler);
     }

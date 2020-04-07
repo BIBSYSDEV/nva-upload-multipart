@@ -1,13 +1,16 @@
 package no.unit.nva.amazon.s3;
 
+import com.amazonaws.services.s3.AmazonS3;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.mockito.Mockito;
 
 import java.util.Optional;
 
-
+import static no.unit.nva.amazon.s3.Environment.AWS_REGION_KEY;
+import static no.unit.nva.amazon.s3.Environment.DEFAULT_AWS_REGION;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -35,6 +38,14 @@ public class EnvironmentTest {
         assertNotNull(debugUtils);
     }
 
+    @Test
+    public void testGetS3Client() {
+        environmentVariables.set(AWS_REGION_KEY, DEFAULT_AWS_REGION);
+        Environment environment = Mockito.spy(new Environment());
+        Mockito.when(environment.get(AWS_REGION_KEY)).thenReturn(Optional.of(DEFAULT_AWS_REGION));
+        AmazonS3 amazonS3Client = environment.createAmazonS3Client();
+        assertNotNull(amazonS3Client);
+    }
 
 
 
