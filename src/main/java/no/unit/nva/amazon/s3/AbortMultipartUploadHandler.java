@@ -1,11 +1,9 @@
 package no.unit.nva.amazon.s3;
 
 
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.google.gson.Gson;
@@ -40,8 +38,13 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
     private final transient AmazonS3 s3Client;
 
     public AbortMultipartUploadHandler() {
-        this(new Environment(), createAmazonS3Client());
+        this(new Environment());
     }
+
+    public AbortMultipartUploadHandler(Environment environment) {
+        this(environment, environment.createAmazonS3Client());
+    }
+
 
     /**
      * Construct for lambda eventhandler to create an upload request for S3.
@@ -52,12 +55,6 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
         this.bucketName = environment.get(S3_UPLOAD_BUCKET_KEY)
                 .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,S3_UPLOAD_BUCKET_KEY)));
         this.s3Client = s3Client;
-    }
-
-    private static AmazonS3 createAmazonS3Client() {
-        return AmazonS3ClientBuilder.standard()
-                .withRegion(Regions.EU_WEST_1)
-                .build();
     }
 
     public  AmazonS3 getS3Client() {

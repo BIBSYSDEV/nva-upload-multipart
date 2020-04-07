@@ -1,11 +1,9 @@
 package no.unit.nva.amazon.s3;
 
 
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ListPartsRequest;
 import com.amazonaws.services.s3.model.PartListing;
@@ -43,9 +41,12 @@ public class ListPartsHandler implements RequestHandler<Map<String, Object>, Gat
     private final transient AmazonS3 s3Client;
 
     public ListPartsHandler() {
-        this(new Environment(), createAmazonS3Client());
+        this(new Environment());
     }
 
+    public ListPartsHandler(Environment environment) {
+        this(environment, environment.createAmazonS3Client());
+    }
 
     /**
      * Construct for lambda eventhandler to create an upload request for S3.
@@ -57,12 +58,6 @@ public class ListPartsHandler implements RequestHandler<Map<String, Object>, Gat
                 .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,S3_UPLOAD_BUCKET_KEY)));
 
         this.s3Client = s3Client;
-    }
-
-    private static AmazonS3 createAmazonS3Client() {
-        return AmazonS3ClientBuilder.standard()
-                .withRegion(Regions.EU_WEST_1)
-                .build();
     }
 
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")

@@ -1,11 +1,9 @@
 package no.unit.nva.amazon.s3;
 
 import com.amazonaws.SdkClientException;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -40,7 +38,11 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
 
 
     public CreateUploadHandler() {
-        this(new Environment(), createAmazonS3Client());
+        this(new Environment());
+    }
+
+    public CreateUploadHandler(Environment environment) {
+        this(environment, environment.createAmazonS3Client());
     }
 
 
@@ -54,12 +56,6 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
                 .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,S3_UPLOAD_BUCKET_KEY)));
         this.s3Client = s3Client;
 
-    }
-
-    private static AmazonS3 createAmazonS3Client() {
-        return AmazonS3ClientBuilder.standard()
-                .withRegion(Regions.EU_WEST_1)
-                .build();
     }
 
     public AmazonS3 getS3Client() {

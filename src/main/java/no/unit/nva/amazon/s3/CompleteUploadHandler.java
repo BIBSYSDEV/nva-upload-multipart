@@ -1,10 +1,8 @@
 package no.unit.nva.amazon.s3;
 
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadResult;
@@ -43,7 +41,11 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
     private final transient AmazonS3 s3Client;
 
     public CompleteUploadHandler() {
-        this(new Environment(), createAmazonS3Client());
+        this(new Environment());
+    }
+
+    public CompleteUploadHandler(Environment environment) {
+        this(environment, environment.createAmazonS3Client());
     }
 
 
@@ -58,19 +60,11 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
         this.s3Client = s3Client;
     }
 
-    private static AmazonS3 createAmazonS3Client() {
-        return AmazonS3ClientBuilder.standard()
-                .withRegion(Regions.EU_WEST_1)
-                .build();
-    }
-
-
     @Override
     public GatewayResponse handleRequest(Map<String, Object> input, Context context) {
 
         final GatewayResponse response = new GatewayResponse();
         response.setHeaders(headers());
-
 
         CompleteUploadRequestBody requestBody;
         try {
