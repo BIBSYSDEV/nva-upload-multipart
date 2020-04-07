@@ -5,12 +5,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
-import java.util.Optional;
-
 import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
 import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
@@ -23,6 +20,7 @@ public class HandlerEnvironmentTest {
     @Before
     public void setUp() {
         environment = mock(Environment.class);
+        environmentVariables.set(Environment.AWS_REGION_KEY, Environment.DEFAULT_AWS_REGION);
     }
 
     @Test(expected = IllegalStateException.class)

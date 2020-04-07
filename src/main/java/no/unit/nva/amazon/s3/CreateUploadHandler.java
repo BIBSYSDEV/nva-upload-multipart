@@ -4,7 +4,6 @@ import com.amazonaws.SdkClientException;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -33,7 +32,7 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
     public static final String PARAMETER_FILENAME_KEY = "filename";
     public static final String PARAMETER_INPUT_KEY = "input";
 
-    private static final AmazonS3 s3Client = createAmazonS3Client();
+    private final transient AmazonS3 s3Client;
     public final transient String bucketName;
     private final transient String allowedOrigin;
 
@@ -42,22 +41,21 @@ public class CreateUploadHandler implements RequestHandler<Map<String, Object>, 
         this(new Environment());
     }
 
+    public CreateUploadHandler(Environment environment) {
+        this(environment, environment.createAmazonS3Client());
+    }
+
 
     /**
      * Construct for lambda eventhandler to create an upload request for S3.
      */
-    public CreateUploadHandler(Environment environment) {
+    public CreateUploadHandler(Environment environment, AmazonS3 s3Client) {
         this.allowedOrigin = environment.get(ALLOWED_ORIGIN_KEY)
                 .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,ALLOWED_ORIGIN_KEY)));
         this.bucketName = environment.get(S3_UPLOAD_BUCKET_KEY)
                 .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,S3_UPLOAD_BUCKET_KEY)));
+        this.s3Client = s3Client;
 
-
-    }
-
-    public static AmazonS3 createAmazonS3Client() {
-        return AmazonS3ClientBuilder.standard()
-                .build();
     }
 
     public AmazonS3 getS3Client() {

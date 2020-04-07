@@ -28,7 +28,11 @@ dependencies {
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.2.4'
     testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
     testImplementation group: 'commons-io', name: 'commons-io', version: '2.6'
+}
 
+test {
+    failFast = true
+    finalizedBy jacocoTestReport
 }
 
 task buildZip(type: Zip) {
@@ -41,12 +45,6 @@ task buildZip(type: Zip) {
 
 project.tasks.build.dependsOn project.tasks.buildZip
 
-
-
-test {
-    failFast = true
-    finalizedBy jacocoTestReport
-}
 
 // We don't want a jar, just a fatJar
 //jar.enabled = false
