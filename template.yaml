@@ -7,9 +7,9 @@ Metadata:
     Name: UploadMultipart
     Description: Backend for uploading files to Amazon S3
     Author: Unit
-    SemanticVersion: 1.0.0
     SpdxLicenseId: MIT
     LicenseUrl: LICENSE
+    Labels: ['${CODEBUILD_RESOLVED_SOURCE_VERSION}', '${GIT_REPO}']
 
 Globals:
   Function:
@@ -44,7 +44,7 @@ Resources:
       DefinitionBody:
         openapi: 3.0.0
         info:
-          title: NVA S3 (Multipart) Upload
+          title: NVA S3 Multipart Upload
           version: '1.0'
         paths:
           /create:
