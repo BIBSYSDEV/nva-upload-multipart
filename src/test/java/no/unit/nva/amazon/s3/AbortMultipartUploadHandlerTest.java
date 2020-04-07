@@ -48,6 +48,7 @@ public class AbortMultipartUploadHandlerTest {
     public void testDefaultConstructor() {
         environmentVariables.set(ALLOWED_ORIGIN_KEY,ALLOWED_ORIGIN_KEY);
         environmentVariables.set(S3_UPLOAD_BUCKET_KEY,S3_UPLOAD_BUCKET_KEY);
+        environmentVariables.set(Environment.AWS_REGION_KEY, Environment.DEFAULT_AWS_REGION);
         AbortMultipartUploadHandler abortMultipartUploadHandler = new AbortMultipartUploadHandler();
         assertNotNull(abortMultipartUploadHandler);
     }

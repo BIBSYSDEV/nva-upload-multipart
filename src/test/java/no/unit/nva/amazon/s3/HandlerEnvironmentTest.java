@@ -20,6 +20,7 @@ public class HandlerEnvironmentTest {
     @Before
     public void setUp() {
         environment = mock(Environment.class);
+        environmentVariables.set(Environment.AWS_REGION_KEY, Environment.DEFAULT_AWS_REGION);
     }
 
     @Test(expected = IllegalStateException.class)
