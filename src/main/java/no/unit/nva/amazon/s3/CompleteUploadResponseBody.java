@@ -2,14 +2,14 @@ package no.unit.nva.amazon.s3;
 
 public class CompleteUploadResponseBody {
 
-    private final String key;
+    private final String location;
 
-    public CompleteUploadResponseBody(String key) {
-        this.key = key;
+    public CompleteUploadResponseBody(String location) {
+        this.location = location;
     }
 
-    public String getKey() {
-        return key;
+    public String getLocation() {
+        return location;
     }
 
 }

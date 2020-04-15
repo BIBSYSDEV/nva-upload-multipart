@@ -90,7 +90,7 @@ public class CompleteUploadHandler implements RequestHandler<Map<String, Object>
                     s3Client.completeMultipartUpload(completeMultipartUploadRequest);
             System.out.println(uploadResult);
             CompleteUploadResponseBody completeUploadResponseBody =
-                    new CompleteUploadResponseBody(requestBody.getKey());
+                    new CompleteUploadResponseBody(uploadResult.getKey());
             response.setBody(new Gson().toJson(completeUploadResponseBody));
             response.setStatusCode(SC_OK);
             System.out.println(response);
