@@ -316,8 +316,8 @@ public class CompleteUploadHandlerTest {
 
     @Test
     public void testHandleRequestConstructor() {
-        CompleteUploadResponseBody completeUploadRequestBody = new CompleteUploadResponseBody(SAMPLE_KEY);
-        assertEquals(SAMPLE_KEY, completeUploadRequestBody.getKey());
+        CompleteUploadResponseBody completeUploadResponseBody = new CompleteUploadResponseBody(SAMPLE_KEY);
+        assertEquals(SAMPLE_KEY, completeUploadResponseBody.getKey());
     }
 
 }
