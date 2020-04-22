@@ -380,7 +380,7 @@ Resources:
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.amazon.s3.CreateUploadHandler::handleRequest
       Runtime: java11
-      MemorySize: 512
+      MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         CreateEvent:
@@ -399,7 +399,7 @@ Resources:
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.amazon.s3.ListPartsHandler::handleRequest
       Runtime: java11
-      MemorySize: 512
+      MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         ListEvent:
@@ -418,7 +418,7 @@ Resources:
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.amazon.s3.PrepareUploadPartHandler::handleRequest
       Runtime: java11
-      MemorySize: 512
+      MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         PrepareEvent:
@@ -437,7 +437,7 @@ Resources:
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.amazon.s3.AbortMultipartUploadHandler::handleRequest
       Runtime: java11
-      MemorySize: 512
+      MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         AbortEvent:
@@ -456,7 +456,7 @@ Resources:
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.amazon.s3.CompleteUploadHandler::handleRequest
       Runtime: java11
-      MemorySize: 512
+      MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         CompleteEvent:
@@ -499,6 +499,6 @@ Resources:
                   - s3:AbortMultipartUpload
                   - s3:ListMultipartUploadParts
                 Resource:
-                  - arn:aws:s3:::nva-storage-develop
-                  - arn:aws:s3:::nva-storage-develop/*
+                  - !Sub 'arn:aws:s3:::${S3UploadBucket}'
+                  - !Sub 'arn:aws:s3:::${S3UploadBucket}/*'
 

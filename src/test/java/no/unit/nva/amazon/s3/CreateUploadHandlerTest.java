@@ -152,7 +152,7 @@ public class CreateUploadHandlerTest {
     @Test
     public void testHandleFailingRequestMissingFileparameters() {
         CreateUploadRequestBody requestInputBody =
-                new CreateUploadRequestBody(null, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);;
+                new CreateUploadRequestBody(null, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         Map<String, Object> requestInput = new HashMap<>();
         requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
         AmazonS3 mockS3Client =  mock(AmazonS3.class);
