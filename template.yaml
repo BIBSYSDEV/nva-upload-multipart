@@ -499,6 +499,6 @@ Resources:
                   - s3:AbortMultipartUpload
                   - s3:ListMultipartUploadParts
                 Resource:
-                  - arn:aws:s3:::nva-storage-develop
-                  - arn:aws:s3:::nva-storage-develop/*
+                  - !Sub 'arn:aws:s3:::${S3UploadBucket}'
+                  - !Sub 'arn:aws:s3:::${S3UploadBucket}/*'
 
