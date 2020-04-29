@@ -9,7 +9,7 @@ Metadata:
     Author: Unit
     SpdxLicenseId: MIT
     LicenseUrl: LICENSE
-    Labels: ['${CODEBUILD_RESOLVED_SOURCE_VERSION}', '${GIT_REPO}']
+    Labels: ['git-repo:${GIT_REPO}', 'git-commit:${CODEBUILD_RESOLVED_SOURCE_VERSION}', 'build@${BUILD_TIMESTAMP}']
 
 Globals:
   Function:
