@@ -1,4 +1,4 @@
-package no.unit.nva.amazon.s3;
+package no.unit.nva.amazon.s3.util;
 
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;

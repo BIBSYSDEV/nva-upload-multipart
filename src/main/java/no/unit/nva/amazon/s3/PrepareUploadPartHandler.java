@@ -9,17 +9,23 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import no.unit.nva.amazon.s3.exception.ParameterMissingException;
+import no.unit.nva.amazon.s3.model.GatewayResponse;
+import no.unit.nva.amazon.s3.model.PrepareUploadPartRequestBody;
+import no.unit.nva.amazon.s3.model.PrepareUploadPartResponseBody;
+import no.unit.nva.amazon.s3.util.DebugUtils;
+import no.unit.nva.amazon.s3.util.Environment;
 
 import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
-import static no.unit.nva.amazon.s3.Environment.MISSING_ENV_TEXT;
-import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
-import static no.unit.nva.amazon.s3.GatewayResponse.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
+import static no.unit.nva.amazon.s3.model.GatewayResponse.ACCESS_CONTROL_ALLOW_ORIGIN;
+import static no.unit.nva.amazon.s3.model.GatewayResponse.BODY_KEY;
+import static no.unit.nva.amazon.s3.util.Environment.ALLOWED_ORIGIN_KEY;
+import static no.unit.nva.amazon.s3.util.Environment.MISSING_ENV_TEXT;
+import static no.unit.nva.amazon.s3.util.Environment.S3_UPLOAD_BUCKET_KEY;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;

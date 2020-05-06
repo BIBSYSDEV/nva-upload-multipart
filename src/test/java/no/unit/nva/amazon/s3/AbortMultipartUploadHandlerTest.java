@@ -3,6 +3,10 @@ package no.unit.nva.amazon.s3;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.google.gson.Gson;
+import no.unit.nva.amazon.s3.exception.ParameterMissingException;
+import no.unit.nva.amazon.s3.model.AbortMultipartUploadRequestBody;
+import no.unit.nva.amazon.s3.model.GatewayResponse;
+import no.unit.nva.amazon.s3.util.Environment;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,9 +17,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
-import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
-import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
+import static no.unit.nva.amazon.s3.model.GatewayResponse.BODY_KEY;
+import static no.unit.nva.amazon.s3.util.Environment.ALLOWED_ORIGIN_KEY;
+import static no.unit.nva.amazon.s3.util.Environment.S3_UPLOAD_BUCKET_KEY;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
@@ -104,7 +108,7 @@ public class AbortMultipartUploadHandlerTest {
     @Test
     public void testHandleFailingRequestNoInput() {
         AmazonS3 mockS3Client =  mock(AmazonS3.class);
-        ParameterMissingException  parameterMissingException = new ParameterMissingException("mock-exception");
+        ParameterMissingException parameterMissingException = new ParameterMissingException("mock-exception");
         AbortMultipartUploadHandler abortMultipartUploadHandler =
                 new AbortMultipartUploadHandler(environment, null);
         final GatewayResponse response = abortMultipartUploadHandler.handleRequest(null, null);

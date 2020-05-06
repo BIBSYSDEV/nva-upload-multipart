@@ -1,6 +1,8 @@
 package no.unit.nva.amazon.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
+import no.unit.nva.amazon.s3.util.DebugUtils;
+import no.unit.nva.amazon.s3.util.Environment;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -9,8 +11,8 @@ import org.mockito.Mockito;
 
 import java.util.Optional;
 
-import static no.unit.nva.amazon.s3.Environment.AWS_REGION_KEY;
-import static no.unit.nva.amazon.s3.Environment.DEFAULT_AWS_REGION;
+import static no.unit.nva.amazon.s3.util.Environment.AWS_REGION_KEY;
+import static no.unit.nva.amazon.s3.util.Environment.DEFAULT_AWS_REGION;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;

@@ -1,4 +1,7 @@
-package no.unit.nva.amazon.s3;
+package no.unit.nva.amazon.s3.model;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CreateUploadRequestBody {
 
@@ -9,11 +12,15 @@ public class CreateUploadRequestBody {
 
     /**
      * Creates a request to upload a file to S3.
+     *
      * @param filename name of the file  to upload
-     * @param size size fo the file to upload
-     * @param mimetype mimetyoe of the uploaded file
+     * @param size     size fo the file to upload
+     * @param mimetype mimetype of the uploaded file
      */
-    public CreateUploadRequestBody(String filename, String size, String mimetype) {
+    @JsonCreator
+    public CreateUploadRequestBody(@JsonProperty("filename") String filename,
+                                   @JsonProperty("size") String size,
+                                   @JsonProperty("mimetype") String mimetype) {
         this.filename = filename;
         this.size = size;
         this.mimetype = mimetype;
@@ -41,4 +48,5 @@ public class CreateUploadRequestBody {
     public String getMd5hash() {
         return md5hash;
     }
+
 }

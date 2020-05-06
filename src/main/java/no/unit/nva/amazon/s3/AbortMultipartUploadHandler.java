@@ -8,16 +8,22 @@ import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import no.unit.nva.amazon.s3.exception.ParameterMissingException;
+import no.unit.nva.amazon.s3.model.AbortMultipartUploadRequestBody;
+import no.unit.nva.amazon.s3.model.GatewayResponse;
+import no.unit.nva.amazon.s3.model.SimpleMessageResponse;
+import no.unit.nva.amazon.s3.util.DebugUtils;
+import no.unit.nva.amazon.s3.util.Environment;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static no.unit.nva.amazon.s3.Environment.ALLOWED_ORIGIN_KEY;
-import static no.unit.nva.amazon.s3.Environment.MISSING_ENV_TEXT;
-import static no.unit.nva.amazon.s3.Environment.S3_UPLOAD_BUCKET_KEY;
-import static no.unit.nva.amazon.s3.GatewayResponse.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static no.unit.nva.amazon.s3.GatewayResponse.BODY_KEY;
+import static no.unit.nva.amazon.s3.model.GatewayResponse.ACCESS_CONTROL_ALLOW_ORIGIN;
+import static no.unit.nva.amazon.s3.model.GatewayResponse.BODY_KEY;
+import static no.unit.nva.amazon.s3.util.Environment.ALLOWED_ORIGIN_KEY;
+import static no.unit.nva.amazon.s3.util.Environment.MISSING_ENV_TEXT;
+import static no.unit.nva.amazon.s3.util.Environment.S3_UPLOAD_BUCKET_KEY;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
@@ -89,7 +95,7 @@ public class AbortMultipartUploadHandler implements RequestHandler<Map<String, O
             AbortMultipartUploadRequest abortMultipartUploadRequest =
                     new AbortMultipartUploadRequest(bucketName, requestBody.getKey(), requestBody.getUploadId());
             getS3Client().abortMultipartUpload(abortMultipartUploadRequest);
-            SimpleMessageResponse  message = new SimpleMessageResponse(MULTIPART_UPLOAD_ABORTED_MESSAGE);
+            SimpleMessageResponse message = new SimpleMessageResponse(MULTIPART_UPLOAD_ABORTED_MESSAGE);
             response.setBody(new Gson().toJson(message));
             response.setStatusCode(SC_OK);
             System.out.println(response);

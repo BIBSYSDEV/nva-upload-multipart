@@ -1,4 +1,4 @@
-package no.unit.nva.amazon.s3;
+package no.unit.nva.amazon.s3.model;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -8,7 +8,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.MockitoRule;
 
 import javax.ws.rs.core.Response;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

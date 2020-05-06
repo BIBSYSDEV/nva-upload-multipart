@@ -1,4 +1,4 @@
-package no.unit.nva.amazon.s3;
+package no.unit.nva.amazon.s3.model;
 
 public class CompleteUploadResponseBody {
 
