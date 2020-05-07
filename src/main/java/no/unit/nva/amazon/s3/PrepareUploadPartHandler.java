@@ -3,155 +3,106 @@ package no.unit.nva.amazon.s3;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import no.unit.nva.amazon.s3.exception.ParameterMissingException;
-import no.unit.nva.amazon.s3.model.GatewayResponse;
+import no.unit.nva.amazon.s3.exception.InvalidInputException;
+import no.unit.nva.amazon.s3.exception.NotFoundException;
 import no.unit.nva.amazon.s3.model.PrepareUploadPartRequestBody;
 import no.unit.nva.amazon.s3.model.PrepareUploadPartResponseBody;
-import no.unit.nva.amazon.s3.util.DebugUtils;
-import no.unit.nva.amazon.s3.util.Environment;
+import no.unit.nva.amazon.s3.util.S3Constants;
+import nva.commons.exceptions.ApiGatewayException;
+import nva.commons.handlers.ApiGatewayHandler;
+import nva.commons.handlers.RequestInfo;
+import nva.commons.utils.Environment;
+import nva.commons.utils.JacocoGenerated;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URL;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
-import static no.unit.nva.amazon.s3.model.GatewayResponse.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static no.unit.nva.amazon.s3.model.GatewayResponse.BODY_KEY;
-import static no.unit.nva.amazon.s3.util.Environment.ALLOWED_ORIGIN_KEY;
-import static no.unit.nva.amazon.s3.util.Environment.MISSING_ENV_TEXT;
-import static no.unit.nva.amazon.s3.util.Environment.S3_UPLOAD_BUCKET_KEY;
-import static org.apache.http.HttpHeaders.CONTENT_TYPE;
-import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
-import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
-import static org.apache.http.HttpStatus.SC_NOT_FOUND;
+import static java.util.Objects.requireNonNull;
+import static no.unit.nva.amazon.s3.util.S3Constants.AWS_REGION_KEY;
+import static no.unit.nva.amazon.s3.util.S3Utils.createAmazonS3Client;
 import static org.apache.http.HttpStatus.SC_OK;
-import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 
-public class PrepareUploadPartHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
+public class PrepareUploadPartHandler extends ApiGatewayHandler<PrepareUploadPartRequestBody,
+        PrepareUploadPartResponseBody> {
 
     public static final String PARAMETER_UPLOAD_ID_KEY = "uploadId";
     public static final String PARAMETER_PART_NUMBER_KEY = "partNumber";
-    public static final String PARAMETER_INPUT_KEY = "input";
-    public static final String PARAMETER_BODY_KEY = "body";
-    public static final String PARAMETER_KEY_KEY = "key";
-    public static final String PARAMETER_NUMBER_KEY = "number";
+
+    private static final Logger logger = LoggerFactory.getLogger(PrepareUploadPartHandler.class);
+    public static final String S3_ERROR = "S3 error";
 
     public final transient String bucketName;
-    private final transient String allowedOrigin;
     private final transient AmazonS3 s3Client;
 
+    @JacocoGenerated
     public PrepareUploadPartHandler() {
         this(new Environment());
     }
 
+    @JacocoGenerated
     public PrepareUploadPartHandler(Environment environment) {
-        this(environment, environment.createAmazonS3Client());
+        this(
+                environment,
+                createAmazonS3Client(environment.readEnv(AWS_REGION_KEY)),
+                environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)
+        );
     }
 
     /**
      * Construct for lambda eventhandler to create an upload request for S3.
      */
-    public PrepareUploadPartHandler(Environment environment, AmazonS3 s3Client) {
-        this.allowedOrigin = environment.get(ALLOWED_ORIGIN_KEY)
-                .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,ALLOWED_ORIGIN_KEY)));
-        this.bucketName = environment.get(S3_UPLOAD_BUCKET_KEY)
-                .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,S3_UPLOAD_BUCKET_KEY)));
+    public PrepareUploadPartHandler(Environment environment, AmazonS3 s3Client, String bucketName) {
+        super(PrepareUploadPartRequestBody.class, environment, logger);
+        this.bucketName = bucketName;
         this.s3Client = s3Client;
     }
 
     @Override
-    public GatewayResponse handleRequest(Map<String, Object> input, Context context) {
+    protected PrepareUploadPartResponseBody processInput(PrepareUploadPartRequestBody input, RequestInfo requestInfo,
+                                                         Context context) throws ApiGatewayException {
+        validate(input);
+        GeneratePresignedUrlRequest predesignedUrlUploadRequest = toGeneratePresignedUrlRequest(input);
+        return new PrepareUploadPartResponseBody(getUrl(predesignedUrlUploadRequest));
+    }
 
-        final GatewayResponse response = new GatewayResponse();
-        response.setHeaders(headers());
-
-
-        PrepareUploadPartRequestBody requestBody = null;
+    protected URL getUrl(GeneratePresignedUrlRequest predesignedUrlUploadRequest) throws NotFoundException {
         try {
-            requestBody = checkParameters(input);
-        } catch (JsonSyntaxException | ParameterMissingException e) {
-            System.out.println(DebugUtils.dumpException(e));
-            response.setErrorBody(e.getMessage());
-            response.setStatusCode(SC_BAD_REQUEST);
-            return response;
-        } catch (Exception e) {
-            System.out.println(DebugUtils.dumpException(e));
-            response.setErrorBody(e.getMessage());
-            response.setStatusCode(SC_INTERNAL_SERVER_ERROR);
-            return response;
-        }
-
-        try {
-
-
-            GeneratePresignedUrlRequest predesignedUrlUploadRequest =
-                    new GeneratePresignedUrlRequest(bucketName, requestBody.getKey())
-                            .withMethod(HttpMethod.PUT);
-            predesignedUrlUploadRequest.addRequestParameter(PARAMETER_UPLOAD_ID_KEY, requestBody.getUploadId());
-            predesignedUrlUploadRequest.addRequestParameter(PARAMETER_PART_NUMBER_KEY, requestBody.getNumber());
-
-            URL predesignedUloadUrl = s3Client.generatePresignedUrl(predesignedUrlUploadRequest);
-
-
-            System.out.println(predesignedUloadUrl);
-            PrepareUploadPartResponseBody prepareUploadPartResponseBody =
-                    new PrepareUploadPartResponseBody(predesignedUloadUrl);
-
-            response.setBody(new Gson().toJson(prepareUploadPartResponseBody));
-            response.setStatusCode(SC_OK);
-            System.out.println(response);
+            return s3Client.generatePresignedUrl(predesignedUrlUploadRequest);
         } catch (AmazonS3Exception e) {
-            System.out.println(DebugUtils.dumpException(e));
-            response.setErrorBody(e.getMessage());
-            response.setStatusCode(SC_NOT_FOUND);
+            throw new NotFoundException(S3_ERROR, e);
+        }
+    }
+
+    protected void validate(PrepareUploadPartRequestBody input) throws ApiGatewayException {
+        try {
+            requireNonNull(input);
+            requireNonNull(input.getKey());
+            requireNonNull(input.getUploadId());
+            requireNonNull(input.getNumber());
+            requireNonNull(input.getBody());
         } catch (Exception e) {
-            System.out.println(DebugUtils.dumpException(e));
-            response.setErrorBody(e.getMessage());
-            response.setStatusCode(SC_INTERNAL_SERVER_ERROR);
-            return response;
+            throw new InvalidInputException(e);
         }
-        return response;
     }
 
-    /**
-     * Checks incoming parameters from api-gateway.
-     *
-     * @param input MAp of parameters from api-gateway
-     * @return POJO with checked parameters
-     */
-    public PrepareUploadPartRequestBody checkParameters(Map<String, Object> input) {
-        if (Objects.isNull(input)) {
-            throw new ParameterMissingException(PARAMETER_INPUT_KEY);
-        }
-        String body = (String) input.get(BODY_KEY);
-        PrepareUploadPartRequestBody requestBody = new Gson().fromJson(body, PrepareUploadPartRequestBody.class);
-        if (Objects.isNull(requestBody)) {
-            throw new ParameterMissingException(PARAMETER_BODY_KEY);
-        }
-        if (Objects.isNull(requestBody.getUploadId())) {
-            throw new ParameterMissingException(PARAMETER_UPLOAD_ID_KEY);
-        }
-        if (Objects.isNull(requestBody.getKey())) {
-            throw new ParameterMissingException(PARAMETER_KEY_KEY);
-        }
-        if (Objects.isNull(requestBody.getNumber())) {
-            throw new ParameterMissingException(PARAMETER_NUMBER_KEY);
-        }
-        return requestBody;
+    protected GeneratePresignedUrlRequest toGeneratePresignedUrlRequest(PrepareUploadPartRequestBody input) {
+        GeneratePresignedUrlRequest predesignedUrlUploadRequest =
+                new GeneratePresignedUrlRequest(
+                        bucketName,
+                        input.getKey()
+                ).withMethod(HttpMethod.PUT);
+        predesignedUrlUploadRequest.addRequestParameter(PARAMETER_UPLOAD_ID_KEY, input.getUploadId());
+        predesignedUrlUploadRequest.addRequestParameter(PARAMETER_PART_NUMBER_KEY, input.getNumber());
+        return predesignedUrlUploadRequest;
     }
 
-    private Map<String, String> headers() {
-        Map<String, String> headers = new ConcurrentHashMap<>();
-        headers.put(ACCESS_CONTROL_ALLOW_ORIGIN, allowedOrigin);
-        headers.put(CONTENT_TYPE, APPLICATION_JSON.getMimeType());
-        return headers;
+    @Override
+    protected Integer getSuccessStatusCode(PrepareUploadPartRequestBody input, PrepareUploadPartResponseBody output) {
+        return SC_OK;
     }
-
 }

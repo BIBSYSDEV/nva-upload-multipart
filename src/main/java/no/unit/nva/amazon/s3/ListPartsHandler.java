@@ -31,7 +31,8 @@ import static org.apache.http.HttpStatus.SC_OK;
 
 public class ListPartsHandler extends ApiGatewayHandler<ListPartsRequestBody, ListPartsResponseBody> {
 
-    private static final Logger logger = LoggerFactory.getLogger(CreateUploadHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ListPartsHandler.class);
+    public static final String S3_ERROR = "S3 error";
 
     public final String bucketName;
     private final AmazonS3 s3Client;
@@ -101,7 +102,7 @@ public class ListPartsHandler extends ApiGatewayHandler<ListPartsRequestBody, Li
                 }
             }
         } catch (AmazonS3Exception e) {
-            throw new NotFoundException("S3 error", e);
+            throw new NotFoundException(S3_ERROR, e);
         }
 
         return listPartsElements;

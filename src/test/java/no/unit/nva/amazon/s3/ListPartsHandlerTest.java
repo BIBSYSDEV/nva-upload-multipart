@@ -12,6 +12,7 @@ import no.unit.nva.amazon.s3.model.ListPartsResponseBody;
 import no.unit.nva.testutils.HandlerUtils;
 import no.unit.nva.testutils.TestContext;
 import nva.commons.handlers.GatewayResponse;
+import nva.commons.utils.Environment;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,7 +44,7 @@ public class ListPartsHandlerTest {
     public static final String SAMPLE_KEY = "key";
     public static final String TEST_BUCKET_NAME = "bucketName";
 
-    private nva.commons.utils.Environment environment;
+    private Environment environment;
     private ListPartsHandler listPartsHandler;
     private HandlerUtils handlerUtils;
     private ByteArrayOutputStream outputStream;

@@ -1,5 +1,8 @@
 package no.unit.nva.amazon.s3.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class PrepareUploadPartRequestBody {
 
     private final  String uploadId;
@@ -14,7 +17,12 @@ public class PrepareUploadPartRequestBody {
      * @param body body of the file to upload
      * @param number partNumber of this file in upload
      */
-    public PrepareUploadPartRequestBody(String uploadId, String key, String body, String number) {
+    @JsonCreator
+    public PrepareUploadPartRequestBody(
+            @JsonProperty("uploadId") String uploadId,
+            @JsonProperty("key") String key,
+            @JsonProperty("body") String body,
+            @JsonProperty("number") String number) {
         this.uploadId = uploadId;
         this.key = key;
         this.body = body;

@@ -1,12 +1,16 @@
 package no.unit.nva.amazon.s3.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.net.URL;
 
 public class PrepareUploadPartResponseBody {
 
     private final URL url;
 
-    public PrepareUploadPartResponseBody(URL url) {
+    @JsonCreator
+    public PrepareUploadPartResponseBody(@JsonProperty("url") URL url) {
         this.url = url;
     }
 
