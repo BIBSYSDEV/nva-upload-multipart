@@ -9,13 +9,21 @@ public class ListPartsElement {
     private String etag;
 
     /**
+     * Default constructor for ListPartsElement.
+     */
+    public ListPartsElement() {
+    }
+
+    /**
      * Contains parts information aboud upload, eTag and position.
      * @param partSummary list of eTags and partsnumber
      */
-    public ListPartsElement(PartSummary partSummary) {
-        this.partNumber = Integer.toString(partSummary.getPartNumber());
-        this.size = Long.toString(partSummary.getSize());
-        this.etag = partSummary.getETag();
+    public static ListPartsElement of(PartSummary partSummary) {
+        ListPartsElement listPartsElement = new ListPartsElement();
+        listPartsElement.setPartNumber(Integer.toString(partSummary.getPartNumber()));
+        listPartsElement.setSize(Long.toString(partSummary.getSize()));
+        listPartsElement.setEtag(partSummary.getETag());
+        return listPartsElement;
     }
 
     public String getPartNumber() {

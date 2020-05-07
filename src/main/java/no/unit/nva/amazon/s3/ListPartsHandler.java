@@ -2,158 +2,123 @@ package no.unit.nva.amazon.s3;
 
 
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ListPartsRequest;
 import com.amazonaws.services.s3.model.PartListing;
-import com.amazonaws.services.s3.model.PartSummary;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import no.unit.nva.amazon.s3.exception.ParameterMissingException;
-import no.unit.nva.amazon.s3.model.GatewayResponse;
+import no.unit.nva.amazon.s3.exception.InvalidInputException;
+import no.unit.nva.amazon.s3.exception.NotFoundException;
 import no.unit.nva.amazon.s3.model.ListPartsElement;
 import no.unit.nva.amazon.s3.model.ListPartsRequestBody;
-import no.unit.nva.amazon.s3.util.DebugUtils;
-import no.unit.nva.amazon.s3.util.Environment;
+import no.unit.nva.amazon.s3.model.ListPartsResponseBody;
+import no.unit.nva.amazon.s3.util.S3Constants;
+import nva.commons.exceptions.ApiGatewayException;
+import nva.commons.handlers.ApiGatewayHandler;
+import nva.commons.handlers.RequestInfo;
+import nva.commons.utils.Environment;
+import nva.commons.utils.JacocoGenerated;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
-import static no.unit.nva.amazon.s3.model.GatewayResponse.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static no.unit.nva.amazon.s3.util.Environment.ALLOWED_ORIGIN_KEY;
-import static no.unit.nva.amazon.s3.util.Environment.MISSING_ENV_TEXT;
-import static no.unit.nva.amazon.s3.util.Environment.S3_UPLOAD_BUCKET_KEY;
-import static org.apache.http.HttpHeaders.CONTENT_TYPE;
-import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
-import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
-import static org.apache.http.HttpStatus.SC_NOT_FOUND;
+import static java.util.Objects.requireNonNull;
+import static no.unit.nva.amazon.s3.util.S3Constants.AWS_REGION_KEY;
+import static no.unit.nva.amazon.s3.util.S3Utils.createAmazonS3Client;
 import static org.apache.http.HttpStatus.SC_OK;
-import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 
-public class ListPartsHandler implements RequestHandler<Map<String, Object>, GatewayResponse> {
+public class ListPartsHandler extends ApiGatewayHandler<ListPartsRequestBody, ListPartsResponseBody> {
 
-    public static final String PARAMETER_BODY_KEY = "body";
-    public static final String PARAMETER_UPLOAD_ID_KEY = "uploadId";
-    public static final String PARAMETER_KEY_KEY = "key";
-    public static final String PARAMETER_INPUT_KEY = "input";
+    private static final Logger logger = LoggerFactory.getLogger(CreateUploadHandler.class);
 
-    public final transient String bucketName;
-    private final transient String allowedOrigin;
-    private final transient AmazonS3 s3Client;
+    public final String bucketName;
+    private final AmazonS3 s3Client;
 
+    /**
+     * Default constructor for ListPartsHandler.
+     */
+    @JacocoGenerated
     public ListPartsHandler() {
         this(new Environment());
     }
 
+    /**
+     * Default constructor for ListPartsHandler.
+     *
+     * @param environment   environment reader
+     */
+    @JacocoGenerated
     public ListPartsHandler(Environment environment) {
-        this(environment, environment.createAmazonS3Client());
+        this(
+                environment,
+                createAmazonS3Client(environment.readEnv(AWS_REGION_KEY)),
+                environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)
+        );
     }
 
     /**
-     * Construct for lambda eventhandler to create an upload request for S3.
+     * Constructor for lambda event handler to create an upload request for S3.
      */
-    public ListPartsHandler(Environment environment, AmazonS3 s3Client) {
-        this.allowedOrigin = environment.get(ALLOWED_ORIGIN_KEY)
-                .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,ALLOWED_ORIGIN_KEY)));
-        this.bucketName = environment.get(S3_UPLOAD_BUCKET_KEY)
-                .orElseThrow(() -> new  IllegalStateException(String.format(MISSING_ENV_TEXT,S3_UPLOAD_BUCKET_KEY)));
-
+    public ListPartsHandler(Environment environment, AmazonS3 s3Client, String bucketName) {
+        super(ListPartsRequestBody.class, environment, logger);
+        this.bucketName = bucketName;
         this.s3Client = s3Client;
     }
 
-    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     @Override
-    public GatewayResponse handleRequest(Map<String, Object> input, Context context) {
+    protected ListPartsResponseBody processInput(ListPartsRequestBody input, RequestInfo requestInfo,
+                                                 Context context) throws ApiGatewayException {
+        validate(input);
+        ListPartsRequest listPartsRequest = toListPartsRequest(input);
+        List<ListPartsElement> listParts = getListParts(listPartsRequest);
+        return ListPartsResponseBody.of(listParts);
+    }
 
-        final GatewayResponse response = new GatewayResponse();
-        response.setHeaders(headers());
+    private ListPartsRequest toListPartsRequest(ListPartsRequestBody input) {
+        return new ListPartsRequest(bucketName, input.getKey(), input.getUploadId());
+    }
 
-        ListPartsRequestBody requestBody = null;
-        try {
-            requestBody = checkParameters(input);
-        } catch (JsonSyntaxException | ParameterMissingException e) {
-            System.out.println(DebugUtils.dumpException(e));
-            response.setErrorBody(e.getMessage());
-            response.setStatusCode(SC_BAD_REQUEST);
-            return response;
-        } catch (Exception e) {
-            System.out.println(DebugUtils.dumpException(e));
-            response.setErrorBody(e.getMessage());
-            response.setStatusCode(SC_INTERNAL_SERVER_ERROR);
-            return response;
-        }
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+    protected List<ListPartsElement> getListParts(ListPartsRequest listPartsRequest) throws NotFoundException {
+        List<ListPartsElement> listPartsElements = new ArrayList<>();
 
         try {
-
-            ListPartsRequest listPartsRequest =
-                    new ListPartsRequest(bucketName, requestBody.getKey(), requestBody.getUploadId());
-
-            List<ListPartsElement> listPartsElements = new ArrayList<>();
-
-            boolean allPartsRead = false;
             PartListing partListing = s3Client.listParts(listPartsRequest);
-            while (!allPartsRead) {
-                List<PartSummary> partSummaries = partListing.getParts();
-                partSummaries.stream().map(ListPartsElement::new).forEach(listPartsElements::add);
+            boolean moreParts = true;
+            while (moreParts) {
+                partListing.getParts()
+                        .stream()
+                        .map(ListPartsElement::of)
+                        .forEach(listPartsElements::add);
                 if (partListing.isTruncated()) {
                     Integer partNumberMarker = partListing.getNextPartNumberMarker();
                     listPartsRequest.setPartNumberMarker(partNumberMarker);
                     partListing = s3Client.listParts(listPartsRequest);
                 } else {
-                    allPartsRead = true;
+                    moreParts = false;
                 }
             }
-
-            response.setBody(new Gson().toJson(listPartsElements));
-            response.setStatusCode(SC_OK);
-            System.out.println(response);
         } catch (AmazonS3Exception e) {
-            System.out.println(DebugUtils.dumpException(e));
-            response.setErrorBody(e.getMessage());
-            response.setStatusCode(SC_NOT_FOUND);
+            throw new NotFoundException("S3 error", e);
+        }
+
+        return listPartsElements;
+    }
+
+    private void validate(ListPartsRequestBody input) throws InvalidInputException {
+        try {
+            requireNonNull(input);
+            requireNonNull(input.getKey());
+            requireNonNull(input.getUploadId());
         } catch (Exception e) {
-            System.out.println(DebugUtils.dumpException(e));
-            response.setErrorBody(e.getMessage());
-            response.setStatusCode(SC_INTERNAL_SERVER_ERROR);
-            return response;
+            throw new InvalidInputException(e);
         }
-        return response;
     }
 
-    /**
-     * Checks incoming parameters from api-gateway.
-     *
-     * @param input MAp of parameters from api-gateway
-     * @return POJO with checked parameters
-     */
-    public ListPartsRequestBody checkParameters(Map<String, Object> input) {
-        if (Objects.isNull(input)) {
-            throw new ParameterMissingException(PARAMETER_INPUT_KEY);
-        }
-        String body = (String) input.get(PARAMETER_BODY_KEY);
-        ListPartsRequestBody requestBody = new Gson().fromJson(body, ListPartsRequestBody.class);
-        if (Objects.isNull(requestBody)) {
-            throw new ParameterMissingException(PARAMETER_BODY_KEY);
-        }
-        if (Objects.isNull(requestBody.getUploadId())) {
-            throw new ParameterMissingException(PARAMETER_UPLOAD_ID_KEY);
-        }
-        if (Objects.isNull(requestBody.getKey())) {
-            throw new ParameterMissingException(PARAMETER_KEY_KEY);
-        }
-        return requestBody;
+    @Override
+    protected Integer getSuccessStatusCode(ListPartsRequestBody input, ListPartsResponseBody output) {
+        return SC_OK;
     }
-
-    private Map<String, String> headers() {
-        Map<String, String> headers = new ConcurrentHashMap<>();
-        headers.put(ACCESS_CONTROL_ALLOW_ORIGIN, allowedOrigin);
-        headers.put(CONTENT_TYPE, APPLICATION_JSON.getMimeType());
-        return headers;
-    }
-
 }
