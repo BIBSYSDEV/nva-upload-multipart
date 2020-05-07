@@ -1,10 +1,14 @@
 package no.unit.nva.amazon.s3.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class CompleteUploadResponseBody {
 
     private final String location;
 
-    public CompleteUploadResponseBody(String location) {
+    @JsonCreator
+    public CompleteUploadResponseBody(@JsonProperty("location") String location) {
         this.location = location;
     }
 

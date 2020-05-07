@@ -7,6 +7,7 @@ import no.unit.nva.amazon.s3.model.AbortMultipartUploadRequestBody;
 import no.unit.nva.amazon.s3.model.SimpleMessageResponse;
 import no.unit.nva.testutils.HandlerUtils;
 import no.unit.nva.testutils.TestContext;
+import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.GatewayResponse;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,8 +17,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static no.unit.nva.amazon.s3.util.Environment.ALLOWED_ORIGIN_KEY;
-import static no.unit.nva.amazon.s3.util.Environment.S3_UPLOAD_BUCKET_KEY;
+import static no.unit.nva.amazon.s3.util.S3Constants.S3_UPLOAD_BUCKET_KEY;
 import static nva.commons.utils.JsonUtils.objectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
@@ -34,6 +34,7 @@ public class AbortMultipartUploadHandlerTest {
     public static final String TEST_BUCKET_NAME = "bucketName";
     public static final String SAMPLE_UPLOAD_ID = "uploadId";
     public static final String SAMPLE_KEY = "key";
+    public static final String WILDCARD = "*";
 
     private nva.commons.utils.Environment environment;
     private AbortMultipartUploadHandler abortMultipartUploadHandler;
@@ -48,7 +49,7 @@ public class AbortMultipartUploadHandlerTest {
     @Before
     public void setUp() {
         environment = mock(nva.commons.utils.Environment.class);
-        when(environment.readEnv(ALLOWED_ORIGIN_KEY)).thenReturn(ALLOWED_ORIGIN_KEY);
+        when(environment.readEnv(ApiGatewayHandler.ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3_UPLOAD_BUCKET_KEY)).thenReturn(S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
         abortMultipartUploadHandler = new AbortMultipartUploadHandler(environment, s3client, TEST_BUCKET_NAME);

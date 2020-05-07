@@ -22,8 +22,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static no.unit.nva.amazon.s3.util.Environment.ALLOWED_ORIGIN_KEY;
-import static no.unit.nva.amazon.s3.util.Environment.S3_UPLOAD_BUCKET_KEY;
+import static no.unit.nva.amazon.s3.util.S3Constants.S3_UPLOAD_BUCKET_KEY;
+import static nva.commons.handlers.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
 import static nva.commons.utils.JsonUtils.objectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
@@ -43,6 +43,7 @@ public class ListPartsHandlerTest {
     public static final String SAMPLE_UPLOAD_ID = "uploadId";
     public static final String SAMPLE_KEY = "key";
     public static final String TEST_BUCKET_NAME = "bucketName";
+    public static final String WILDCARD = "*";
 
     private Environment environment;
     private ListPartsHandler listPartsHandler;
@@ -57,7 +58,7 @@ public class ListPartsHandlerTest {
     @Before
     public void setUp() {
         environment = mock(nva.commons.utils.Environment.class);
-        when(environment.readEnv(ALLOWED_ORIGIN_KEY)).thenReturn(ALLOWED_ORIGIN_KEY);
+        when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3_UPLOAD_BUCKET_KEY)).thenReturn(S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
         listPartsHandler = new ListPartsHandler(environment, s3client, TEST_BUCKET_NAME);

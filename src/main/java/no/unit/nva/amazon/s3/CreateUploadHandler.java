@@ -68,7 +68,7 @@ public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBo
      * @param requestBody incoming parameters
      * @return Metadata to be stored with file on S3
      */
-    public ObjectMetadata toObjectMetadata(CreateUploadRequestBody requestBody) {
+    protected ObjectMetadata toObjectMetadata(CreateUploadRequestBody requestBody) {
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.setContentMD5(null);
         objectMetadata.setContentDisposition(toContentDisposition(requestBody.getFilename()));
@@ -76,7 +76,7 @@ public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBo
         return objectMetadata;
     }
 
-    protected String toContentDisposition(String filename) {
+    private String toContentDisposition(String filename) {
         return String.format("filename=\"%s\"", filename);
     }
 
@@ -94,7 +94,7 @@ public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBo
         return new CreateUploadResponseBody(initResponse.getUploadId(), keyName);
     }
 
-    protected void validate(CreateUploadRequestBody input) throws InvalidInputException {
+    private void validate(CreateUploadRequestBody input) throws InvalidInputException {
         try {
             requireNonNull(input);
             requireNonNull(input.getFilename());

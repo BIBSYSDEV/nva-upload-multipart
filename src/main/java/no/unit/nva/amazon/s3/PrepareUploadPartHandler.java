@@ -78,7 +78,7 @@ public class PrepareUploadPartHandler extends ApiGatewayHandler<PrepareUploadPar
         return new PrepareUploadPartResponseBody(getUrl(predesignedUrlUploadRequest));
     }
 
-    protected URL getUrl(GeneratePresignedUrlRequest predesignedUrlUploadRequest) throws NotFoundException {
+    private URL getUrl(GeneratePresignedUrlRequest predesignedUrlUploadRequest) throws NotFoundException {
         try {
             return s3Client.generatePresignedUrl(predesignedUrlUploadRequest);
         } catch (AmazonS3Exception e) {
@@ -86,7 +86,7 @@ public class PrepareUploadPartHandler extends ApiGatewayHandler<PrepareUploadPar
         }
     }
 
-    protected void validate(PrepareUploadPartRequestBody input) throws ApiGatewayException {
+    private void validate(PrepareUploadPartRequestBody input) throws ApiGatewayException {
         try {
             requireNonNull(input);
             requireNonNull(input.getKey());
@@ -98,7 +98,7 @@ public class PrepareUploadPartHandler extends ApiGatewayHandler<PrepareUploadPar
         }
     }
 
-    protected GeneratePresignedUrlRequest toGeneratePresignedUrlRequest(PrepareUploadPartRequestBody input) {
+    private GeneratePresignedUrlRequest toGeneratePresignedUrlRequest(PrepareUploadPartRequestBody input) {
         GeneratePresignedUrlRequest predesignedUrlUploadRequest =
                 new GeneratePresignedUrlRequest(
                         bucketName,

@@ -82,7 +82,7 @@ public class ListPartsHandler extends ApiGatewayHandler<ListPartsRequestBody, Li
     }
 
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-    protected List<ListPartsElement> getListParts(ListPartsRequest listPartsRequest) throws NotFoundException {
+    private List<ListPartsElement> getListParts(ListPartsRequest listPartsRequest) throws NotFoundException {
         List<ListPartsElement> listPartsElements = new ArrayList<>();
 
         try {

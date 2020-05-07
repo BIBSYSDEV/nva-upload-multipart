@@ -73,7 +73,7 @@ public class AbortMultipartUploadHandler extends ApiGatewayHandler<AbortMultipar
         return new SimpleMessageResponse(MULTIPART_UPLOAD_ABORTED_MESSAGE);
     }
 
-    protected void abortMultipartUpload(AbortMultipartUploadRequest abortMultipartUploadRequest)
+    private void abortMultipartUpload(AbortMultipartUploadRequest abortMultipartUploadRequest)
             throws NotFoundException {
         try {
             s3Client.abortMultipartUpload(abortMultipartUploadRequest);
@@ -82,7 +82,7 @@ public class AbortMultipartUploadHandler extends ApiGatewayHandler<AbortMultipar
         }
     }
 
-    protected void validate(AbortMultipartUploadRequestBody input)  throws InvalidInputException {
+    private void validate(AbortMultipartUploadRequestBody input)  throws InvalidInputException {
         try {
             requireNonNull(input);
             requireNonNull(input.getUploadId());
@@ -92,7 +92,7 @@ public class AbortMultipartUploadHandler extends ApiGatewayHandler<AbortMultipar
         }
     }
 
-    protected AbortMultipartUploadRequest toAbortMultipartUploadRequest(AbortMultipartUploadRequestBody input) {
+    private AbortMultipartUploadRequest toAbortMultipartUploadRequest(AbortMultipartUploadRequestBody input) {
         return new AbortMultipartUploadRequest(bucketName, input.getKey(), input.getUploadId());
     }
 

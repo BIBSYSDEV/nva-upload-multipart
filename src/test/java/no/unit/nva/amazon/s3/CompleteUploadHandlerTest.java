@@ -1,37 +1,32 @@
 package no.unit.nva.amazon.s3;
 
-import com.amazonaws.SdkClientException;
-import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadResult;
-import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.google.gson.Gson;
 import no.unit.nva.amazon.s3.model.CompleteUploadPart;
 import no.unit.nva.amazon.s3.model.CompleteUploadRequestBody;
 import no.unit.nva.amazon.s3.model.CompleteUploadResponseBody;
-import no.unit.nva.amazon.s3.model.GatewayResponse;
-import no.unit.nva.amazon.s3.util.Environment;
+import no.unit.nva.testutils.HandlerUtils;
+import no.unit.nva.testutils.TestContext;
+import nva.commons.handlers.GatewayResponse;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mockito;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
-import static no.unit.nva.amazon.s3.model.GatewayResponse.BODY_KEY;
-import static no.unit.nva.amazon.s3.util.Environment.ALLOWED_ORIGIN_KEY;
-import static no.unit.nva.amazon.s3.util.Environment.S3_UPLOAD_BUCKET_KEY;
+import static no.unit.nva.amazon.s3.util.S3Constants.S3_UPLOAD_BUCKET_KEY;
+import static nva.commons.handlers.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
+import static nva.commons.utils.JsonUtils.objectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
-import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
@@ -46,65 +41,60 @@ public class CompleteUploadHandlerTest {
 
     private static final String COMPLETE_UPLOAD_REQUEST_WITH_EMPTY_ELEMENT_JSON
             = "/CompleteRequestWithEmptyElement.json";
-
     private static final String COMPLETE_UPLOAD_REQUEST_WITH_ONE_PART_JSON
             = "/CompleteRequestWithOnePart.json";
-    public static final String SAMPLE_KEY = "sampleKey";
+    public static final String TEST_BUCKET_NAME = "bucketName";
+    public static final String SAMPLE_KEY = "key";
+    public static final String SAMPLE_UPLOAD_ID = "uploadID";
+    public static final String WILDCARD = "*";
 
-    @Rule
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-    private Environment environment;
+    private nva.commons.utils.Environment environment;
+    private CompleteUploadHandler completeUploadHandler;
+    private HandlerUtils handlerUtils;
+    private ByteArrayOutputStream outputStream;
+    private Context context;
+    private AmazonS3Client s3client;
 
     /**
      * Setup test env.
      */
     @Before
     public void setUp() {
-        environment = mock(Environment.class);
-        Mockito.when(environment.get(ALLOWED_ORIGIN_KEY)).thenReturn(Optional.of(ALLOWED_ORIGIN_KEY));
-        Mockito.when(environment.get(S3_UPLOAD_BUCKET_KEY)).thenReturn(Optional.of(S3_UPLOAD_BUCKET_KEY));
+        environment = mock(nva.commons.utils.Environment.class);
+        when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
+        when(environment.readEnv(S3_UPLOAD_BUCKET_KEY)).thenReturn(S3_UPLOAD_BUCKET_KEY);
+        s3client = mock(AmazonS3Client.class);
+        completeUploadHandler = new CompleteUploadHandler(environment, s3client, TEST_BUCKET_NAME);
+        context = new TestContext();
+        handlerUtils = new HandlerUtils(objectMapper);
+        outputStream = new ByteArrayOutputStream();
     }
-
-    private CompleteUploadRequestBody createRequestBody() {
-        List<CompleteUploadPart> partEtags = new ArrayList<>();
-        partEtags.add(new CompleteUploadPart(1, "eTag1"));
-        CompleteUploadRequestBody requestInputBody = new CompleteUploadRequestBody("key", "uploadID", partEtags);
-        return requestInputBody;
-    }
-
 
     @Test
-    public void testDefaultConstructor() {
-        environmentVariables.set(ALLOWED_ORIGIN_KEY, ALLOWED_ORIGIN_KEY);
-        environmentVariables.set(S3_UPLOAD_BUCKET_KEY, S3_UPLOAD_BUCKET_KEY);
-        environmentVariables.set(Environment.AWS_REGION_KEY, Environment.DEFAULT_AWS_REGION);
-        CompleteUploadHandler completeUploadHandler = new  CompleteUploadHandler();
-        assertNotNull(completeUploadHandler);
-    }
+    public void testHandleRequestMissingParameters() throws IOException {
+        InputStream inputStream = handlerUtils
+                .requestObjectToApiGatewayRequestInputSteam(null, null);
+        completeUploadHandler.handleRequest(inputStream, outputStream, context);
+        GatewayResponse<CompleteUploadResponseBody> response = objectMapper.readValue(
+                outputStream.toByteArray(),
+                nva.commons.handlers.GatewayResponse.class);
 
-
-    @Test
-    public void testHandleRequestMissingParameters() {
-        Map<String, Object> requestInput = new HashMap<>();
-        CompleteUploadHandler completeUploadHandler = new CompleteUploadHandler(environment, null);
-        final GatewayResponse response = completeUploadHandler.handleRequest(requestInput, null);
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
 
+
+
     @Test
-    public void testHandleRequest() throws MalformedURLException {
+    public void testHandleRequest() throws IOException {
+        when(s3client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
+                .thenReturn(new CompleteMultipartUploadResult());
 
-        CompleteUploadRequestBody requestInputBody = createRequestBody();
-
-        Map<String, Object> requestInput = new HashMap<>();
-        requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
-
-        AmazonS3 mockS3Client = mock(AmazonS3.class);
-        CompleteMultipartUploadResult uploadResult = new CompleteMultipartUploadResult();
-        when(mockS3Client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
-                .thenReturn(uploadResult);
-        CompleteUploadHandler completeUploadHandler = new CompleteUploadHandler(environment, mockS3Client);
-        final GatewayResponse response = completeUploadHandler.handleRequest(requestInput, null);
+        InputStream inputStream = handlerUtils
+                .requestObjectToApiGatewayRequestInputSteam(completeUploadRequestBody(), null);
+        completeUploadHandler.handleRequest(inputStream, outputStream, context);
+        GatewayResponse<CompleteUploadResponseBody> response = objectMapper.readValue(
+                outputStream.toByteArray(),
+                nva.commons.handlers.GatewayResponse.class);
 
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
@@ -112,168 +102,19 @@ public class CompleteUploadHandlerTest {
     }
 
     @Test
-    public void testHandleFailingRequest() {
+    public void testHandleFailingRequest() throws IOException {
+        when(s3client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
+                .thenThrow(AmazonS3Exception.class);
 
-        CompleteUploadRequestBody requestInputBody = createRequestBody();
-
-        Map<String, Object> requestInput = new HashMap<>();
-        requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
-
-        AmazonS3 mockS3Client = mock(AmazonS3.class);
-
-        AmazonS3Exception amazonS3Exception = new AmazonS3Exception("mock-exception");
-
-        when(mockS3Client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
-                .thenThrow(amazonS3Exception);
-        CompleteUploadHandler completeUploadHandler = new CompleteUploadHandler(environment, mockS3Client);
-        final GatewayResponse response = completeUploadHandler.handleRequest(requestInput, null);
+        InputStream inputStream = handlerUtils
+                .requestObjectToApiGatewayRequestInputSteam(completeUploadRequestBody(), null);
+        completeUploadHandler.handleRequest(inputStream, outputStream, context);
+        GatewayResponse<CompleteUploadResponseBody> response = objectMapper.readValue(
+                outputStream.toByteArray(),
+                nva.commons.handlers.GatewayResponse.class);
 
         assertNotNull(response);
         assertEquals(SC_NOT_FOUND, response.getStatusCode());
-        assertNotNull(response.getBody());
-    }
-
-
-    @Test
-    public void testHandleFailingRequestMissingInputParameters() {
-
-        AmazonS3 mockS3Client = mock(AmazonS3.class);
-
-        CompleteUploadHandler completeUploadHandler = new CompleteUploadHandler(environment, mockS3Client);
-        final GatewayResponse response = completeUploadHandler.handleRequest(null, null);
-
-        assertNotNull(response);
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-    }
-
-    @Test
-    public void testHandleFailingRequestMissingInputParametersBody() {
-
-
-        AmazonS3 mockS3Client = mock(AmazonS3.class);
-
-        Map<String, Object> requestInput = new HashMap<>();
-
-        CompleteUploadHandler completeUploadHandler = new CompleteUploadHandler(environment, mockS3Client);
-        final GatewayResponse response = completeUploadHandler.handleRequest(requestInput, null);
-
-        assertNotNull(response);
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-    }
-
-
-    @Test
-    public void testHandleFailingRequestMissingParameterUploadId() {
-
-        CompleteUploadRequestBody requestInputBody = createRequestBody();
-        requestInputBody.setUploadId(null);
-
-        Map<String, Object> requestInput = new HashMap<>();
-        requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
-
-        AmazonS3 mockS3Client = mock(AmazonS3.class);
-
-        SdkClientException sdkClientException = new SdkClientException("mock-exception");
-        when(mockS3Client.generatePresignedUrl(Mockito.any(GeneratePresignedUrlRequest.class)))
-                .thenThrow(sdkClientException);
-        CompleteUploadHandler completeUploadHandler = new CompleteUploadHandler(environment, mockS3Client);
-        final GatewayResponse response = completeUploadHandler.handleRequest(requestInput, null);
-
-        assertNotNull(response);
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-    }
-
-    @Test
-    public void testHandleFailingRequestMissingParameterKey() {
-
-        CompleteUploadRequestBody requestInputBody = createRequestBody();
-        requestInputBody.setKey(null);
-
-        Map<String, Object> requestInput = new HashMap<>();
-        requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
-
-        AmazonS3 mockS3Client = mock(AmazonS3.class);
-
-        SdkClientException sdkClientException = new SdkClientException("mock-exception");
-        when(mockS3Client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
-                .thenThrow(sdkClientException);
-        CompleteUploadHandler completeUploadHandler = new CompleteUploadHandler(environment, mockS3Client);
-        final GatewayResponse response = completeUploadHandler.handleRequest(requestInput, null);
-
-        assertNotNull(response);
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-    }
-
-    @Test
-    public void testHandleFailingRequestMissingParameterNumber() {
-
-        CompleteUploadRequestBody requestInputBody = createRequestBody();
-        requestInputBody.setParts(null);
-
-        Map<String, Object> requestInput = new HashMap<>();
-        requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
-
-        AmazonS3 mockS3Client = mock(AmazonS3.class);
-
-        SdkClientException sdkClientException = new SdkClientException("mock-exception");
-        when(mockS3Client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
-                .thenThrow(sdkClientException);
-        CompleteUploadHandler completeUploadHandler = new CompleteUploadHandler(environment, mockS3Client);
-        final GatewayResponse response = completeUploadHandler.handleRequest(requestInput, null);
-
-        assertNotNull(response);
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-    }
-
-
-    @Test
-    public void testHandleFailingRequestCheckParametersOtherException() {
-
-        CompleteUploadRequestBody requestInputBody = createRequestBody();
-
-        Map<String, Object> requestInput = new HashMap<>();
-        requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
-
-        AmazonS3 mockS3Client = mock(AmazonS3.class);
-        Exception unmappedRuntimeException = new RuntimeException("unmapped-mock-exception");
-
-        when(mockS3Client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
-                .thenThrow(unmappedRuntimeException);
-
-        CompleteUploadHandler spyCompleteUploadHandler =
-                Mockito.spy(new CompleteUploadHandler(environment, mockS3Client));
-        Mockito.doThrow(unmappedRuntimeException).when(spyCompleteUploadHandler).checkParameters(Mockito.anyMap());
-        final GatewayResponse response = spyCompleteUploadHandler.handleRequest(requestInput, null);
-
-        assertNotNull(response);
-        assertEquals(SC_INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertNotNull(response.getBody());
-    }
-
-    @Test
-    public void testHandleFailingRequestOtherException() {
-
-        CompleteUploadRequestBody requestInputBody = createRequestBody();
-
-        Map<String, Object> requestInput = new HashMap<>();
-        requestInput.put(BODY_KEY, new Gson().toJson(requestInputBody));
-
-        AmazonS3 mockS3Client = mock(AmazonS3.class);
-
-
-        Exception janClientException = new RuntimeException("mock-jan-exception");
-        when(mockS3Client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
-                .thenThrow(janClientException);
-        CompleteUploadHandler completeUploadHandler = new CompleteUploadHandler(environment, mockS3Client);
-        final GatewayResponse response = completeUploadHandler.handleRequest(requestInput, null);
-
-        assertNotNull(response);
-        assertEquals(SC_INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
     }
 
@@ -285,11 +126,8 @@ public class CompleteUploadHandlerTest {
                 CompleteUploadRequestBody.class);
         assertNotNull(completeUploadRequestBody);
 
-        AmazonS3 mockS3Client = mock(AmazonS3.class);
-        CompleteUploadHandler completeUploadHandler = new CompleteUploadHandler(environment, mockS3Client);
-
         final CompleteMultipartUploadRequest completeMultipartUploadRequest =
-                completeUploadHandler.getCompleteMultipartUploadRequest(completeUploadRequestBody);
+                completeUploadHandler.toCompleteMultipartUploadRequest(completeUploadRequestBody);
         assertNotNull(completeMultipartUploadRequest);
 
         assertNotEquals(completeMultipartUploadRequest.getPartETags().size(),
@@ -306,23 +144,26 @@ public class CompleteUploadHandlerTest {
         assertNotNull(completeUploadRequestBody.getParts());
         assertTrue(completeUploadRequestBody.getParts().size() == 1);
 
-        AmazonS3 mockS3Client = mock(AmazonS3.class);
-        CompleteUploadHandler completeUploadHandler = new CompleteUploadHandler(environment, mockS3Client);
-
         final CompleteMultipartUploadRequest completeMultipartUploadRequest =
-                completeUploadHandler.getCompleteMultipartUploadRequest(completeUploadRequestBody);
+                completeUploadHandler.toCompleteMultipartUploadRequest(completeUploadRequestBody);
         assertNotNull(completeMultipartUploadRequest);
 
         assertEquals(completeMultipartUploadRequest.getPartETags().size(),
                 completeUploadRequestBody.getParts().size());
     }
 
-
-
     @Test
     public void testHandleRequestConstructor() {
         CompleteUploadResponseBody completeUploadResponseBody = new CompleteUploadResponseBody(SAMPLE_KEY);
         assertEquals(SAMPLE_KEY, completeUploadResponseBody.getLocation());
+    }
+
+    private CompleteUploadRequestBody completeUploadRequestBody() {
+        List<CompleteUploadPart> partEtags = new ArrayList<>();
+        partEtags.add(new CompleteUploadPart(1, "eTag1"));
+        CompleteUploadRequestBody requestInputBody = new CompleteUploadRequestBody(
+                SAMPLE_UPLOAD_ID, SAMPLE_KEY, partEtags);
+        return requestInputBody;
     }
 
 }

@@ -1,5 +1,8 @@
 package no.unit.nva.amazon.s3.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class CompleteUploadRequestBody {
@@ -15,7 +18,11 @@ public class CompleteUploadRequestBody {
      * @param key bucket key for identify s3 object
      * @param parts list of uploaded pars index and eTag
      */
-    public CompleteUploadRequestBody(String uploadId, String key, List<CompleteUploadPart> parts) {
+    @JsonCreator
+    public CompleteUploadRequestBody(
+            @JsonProperty("uploadId") String uploadId,
+            @JsonProperty("key") String key,
+            @JsonProperty("parts") List<CompleteUploadPart> parts) {
         this.uploadId = uploadId;
         this.key = key;
         this.parts = parts;

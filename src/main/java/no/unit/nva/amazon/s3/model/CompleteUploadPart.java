@@ -1,5 +1,7 @@
 package no.unit.nva.amazon.s3.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Objects;
@@ -10,7 +12,10 @@ public class CompleteUploadPart {
     @SerializedName("PartNumber")
     private final int partNumber;
 
-    public CompleteUploadPart(int partNumber, String etag) {
+    @JsonCreator
+    public CompleteUploadPart(
+            @JsonProperty("partNumber") int partNumber,
+            @JsonProperty("etag") String etag) {
         this.partNumber = partNumber;
         this.etag = etag;
     }

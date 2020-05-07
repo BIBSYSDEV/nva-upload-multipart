@@ -8,6 +8,7 @@ import no.unit.nva.amazon.s3.model.PrepareUploadPartRequestBody;
 import no.unit.nva.amazon.s3.model.PrepareUploadPartResponseBody;
 import no.unit.nva.testutils.HandlerUtils;
 import no.unit.nva.testutils.TestContext;
+import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.GatewayResponse;
 import nva.commons.utils.Environment;
 import org.junit.Before;
@@ -19,8 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-import static no.unit.nva.amazon.s3.util.Environment.ALLOWED_ORIGIN_KEY;
-import static no.unit.nva.amazon.s3.util.Environment.S3_UPLOAD_BUCKET_KEY;
+import static no.unit.nva.amazon.s3.util.S3Constants.S3_UPLOAD_BUCKET_KEY;
 import static nva.commons.utils.JsonUtils.objectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
@@ -38,6 +38,7 @@ public class PrepareUploadPartHandlerTest {
     public static final String SAMPLE_BODY = "body";
     public static final String SAMPLE_PART_NUMBER = "1";
     public static final String TEST_BUCKET_NAME = "bucketName";
+    public static final String WILDCARD = "*";
 
     private Environment environment;
     private PrepareUploadPartHandler prepareUploadPartHandler;
@@ -52,7 +53,7 @@ public class PrepareUploadPartHandlerTest {
     @Before
     public void setUp() {
         environment = mock(Environment.class);
-        when(environment.readEnv(ALLOWED_ORIGIN_KEY)).thenReturn(ALLOWED_ORIGIN_KEY);
+        when(environment.readEnv(ApiGatewayHandler.ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3_UPLOAD_BUCKET_KEY)).thenReturn(S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
         prepareUploadPartHandler = new PrepareUploadPartHandler(environment, s3client, TEST_BUCKET_NAME);
