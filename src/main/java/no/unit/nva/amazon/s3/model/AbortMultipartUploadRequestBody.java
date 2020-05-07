@@ -1,11 +1,17 @@
 package no.unit.nva.amazon.s3.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class AbortMultipartUploadRequestBody {
 
     private String uploadId;
     private String key;
 
-    public AbortMultipartUploadRequestBody(String uploadId, String key) {
+    @JsonCreator
+    public AbortMultipartUploadRequestBody(
+            @JsonProperty("uploadId") String uploadId,
+            @JsonProperty("key") String key) {
         this.uploadId = uploadId;
         this.key = key;
     }

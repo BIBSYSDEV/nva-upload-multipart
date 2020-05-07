@@ -39,11 +39,19 @@ public class PrepareUploadPartHandler extends ApiGatewayHandler<PrepareUploadPar
     public final transient String bucketName;
     private final transient AmazonS3 s3Client;
 
+    /**
+     * Default constructor for PrepareUploadPartHandler.
+     */
     @JacocoGenerated
     public PrepareUploadPartHandler() {
         this(new Environment());
     }
 
+    /**
+     * Constructor for PrepareUploadPartHandler.
+     *
+     * @param environment   environment reader
+     */
     @JacocoGenerated
     public PrepareUploadPartHandler(Environment environment) {
         this(
