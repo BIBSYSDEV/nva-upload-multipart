@@ -7,9 +7,9 @@ import java.util.List;
 
 public class CompleteUploadRequestBody {
 
-    private String uploadId;
-    private String key;
-    private List<CompleteUploadPart> parts;
+    private final String uploadId;
+    private final String key;
+    private final List<CompleteUploadPart> parts;
 
 
     /**
@@ -33,23 +33,11 @@ public class CompleteUploadRequestBody {
         return uploadId;
     }
 
-    public void setUploadId(String uploadId) {
-        this.uploadId = uploadId;
-    }
-
     public String getKey() {
         return key;
     }
 
-    public void setKey(String key) {
-        this.key = key;
-    }
-
     public List<CompleteUploadPart> getParts() {
         return parts;
-    }
-
-    public void setParts(List<CompleteUploadPart> parts) {
-        this.parts = parts;
     }
 }

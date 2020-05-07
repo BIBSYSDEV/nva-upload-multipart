@@ -28,8 +28,8 @@ import static org.apache.http.HttpStatus.SC_CREATED;
 public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBody, CreateUploadResponseBody> {
 
     private static final Logger logger = LoggerFactory.getLogger(CreateUploadHandler.class);
-    private final AmazonS3 s3Client;
-    private final String bucketName;
+    private final transient AmazonS3 s3Client;
+    private final transient String bucketName;
 
     /**
      * Default constructor for CreateUploadHandler.

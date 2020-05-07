@@ -33,8 +33,8 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
     private static final Logger logger = LoggerFactory.getLogger(CompleteUploadHandler.class);
     public static final String S3_ERROR = "S3 error";
 
-    public final String bucketName;
-    private final AmazonS3 s3Client;
+    private final transient String bucketName;
+    private final transient AmazonS3 s3Client;
 
     /**
      * Default constructor for CompleteUploadHandler.

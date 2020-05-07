@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class AbortMultipartUploadRequestBody {
 
-    private String uploadId;
-    private String key;
+    private final String uploadId;
+    private final String key;
 
     @JsonCreator
     public AbortMultipartUploadRequestBody(
@@ -20,15 +20,7 @@ public class AbortMultipartUploadRequestBody {
         return uploadId;
     }
 
-    public void setUploadId(String uploadId) {
-        this.uploadId = uploadId;
-    }
-
     public String getKey() {
         return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
     }
 }

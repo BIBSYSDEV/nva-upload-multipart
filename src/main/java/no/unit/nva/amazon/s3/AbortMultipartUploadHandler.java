@@ -31,8 +31,8 @@ public class AbortMultipartUploadHandler extends ApiGatewayHandler<AbortMultipar
     private static final Logger logger = LoggerFactory.getLogger(AbortMultipartUploadHandler.class);
     public static final String S3_ERROR = "S3 error";
 
-    public final String bucketName;
-    private final AmazonS3 s3Client;
+    private final transient String bucketName;
+    private final transient  AmazonS3 s3Client;
 
     /**
      * Default constructor for AbortMultipartUploadHandler.

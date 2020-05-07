@@ -36,7 +36,7 @@ public class PrepareUploadPartHandler extends ApiGatewayHandler<PrepareUploadPar
     private static final Logger logger = LoggerFactory.getLogger(PrepareUploadPartHandler.class);
     public static final String S3_ERROR = "S3 error";
 
-    public final transient String bucketName;
+    private final transient String bucketName;
     private final transient AmazonS3 s3Client;
 
     /**

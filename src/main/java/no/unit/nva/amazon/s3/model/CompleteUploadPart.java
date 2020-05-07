@@ -4,17 +4,17 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 
 public class CompleteUploadPart {
     @SerializedName("ETag")
     private final String etag;
     @SerializedName("PartNumber")
-    private final int partNumber;
+    private final Integer partNumber;
 
     @JsonCreator
     public CompleteUploadPart(
-            @JsonProperty("partNumber") int partNumber,
+            @JsonProperty("partNumber") Integer partNumber,
             @JsonProperty("etag") String etag) {
         this.partNumber = partNumber;
         this.etag = etag;
@@ -24,19 +24,22 @@ public class CompleteUploadPart {
         return etag;
     }
 
-    public int getPartNumber() {
+    public Integer getPartNumber() {
         return partNumber;
     }
 
     /**
-     * Checks if a part has value.
-     * @param completeUploadPart part to check
-     * @return true if given part has value
+     *  Check if properties have values.
+     *
+     * @return  true if all properties have values
      */
-    public static boolean hasValue(CompleteUploadPart completeUploadPart) {
-        boolean notEnoughData  = Objects.isNull(completeUploadPart)
-                || Objects.isNull(completeUploadPart.getEtag())
-                || completeUploadPart.getEtag().isEmpty();
-        return !notEnoughData;
+    public boolean hasValue() {
+        try {
+            requireNonNull(etag);
+            requireNonNull(partNumber);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
     }
 }
