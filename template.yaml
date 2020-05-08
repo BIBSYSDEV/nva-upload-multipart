@@ -378,7 +378,7 @@ Resources:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
-      Handler: no.unit.nva.amazon.s3.CreateUploadHandler::handleRequest
+      Handler: no.unit.nva.fileupload.CreateUploadHandler::handleRequest
       Runtime: java11
       MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
@@ -397,7 +397,7 @@ Resources:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
-      Handler: no.unit.nva.amazon.s3.ListPartsHandler::handleRequest
+      Handler: no.unit.nva.fileupload.ListPartsHandler::handleRequest
       Runtime: java11
       MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
@@ -416,7 +416,7 @@ Resources:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
-      Handler: no.unit.nva.amazon.s3.PrepareUploadPartHandler::handleRequest
+      Handler: no.unit.nva.fileupload.PrepareUploadPartHandler::handleRequest
       Runtime: java11
       MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
@@ -435,7 +435,7 @@ Resources:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
-      Handler: no.unit.nva.amazon.s3.AbortMultipartUploadHandler::handleRequest
+      Handler: no.unit.nva.fileupload.AbortMultipartUploadHandler::handleRequest
       Runtime: java11
       MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
@@ -454,7 +454,7 @@ Resources:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
-      Handler: no.unit.nva.amazon.s3.CompleteUploadHandler::handleRequest
+      Handler: no.unit.nva.fileupload.CompleteUploadHandler::handleRequest
       Runtime: java11
       MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
