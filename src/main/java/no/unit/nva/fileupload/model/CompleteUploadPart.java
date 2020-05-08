@@ -2,20 +2,18 @@ package no.unit.nva.fileupload.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.gson.annotations.SerializedName;
 
 import static java.util.Objects.requireNonNull;
 
 public class CompleteUploadPart {
-    @SerializedName("ETag")
+
     private final String etag;
-    @SerializedName("PartNumber")
     private final Integer partNumber;
 
     @JsonCreator
     public CompleteUploadPart(
-            @JsonProperty("partNumber") Integer partNumber,
-            @JsonProperty("etag") String etag) {
+            @JsonProperty("PartNumber") Integer partNumber,
+            @JsonProperty("ETag") String etag) {
         this.partNumber = partNumber;
         this.etag = etag;
     }

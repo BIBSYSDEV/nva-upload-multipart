@@ -5,7 +5,6 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadResult;
-import com.google.gson.Gson;
 import no.unit.nva.fileupload.model.CompleteUploadPart;
 import no.unit.nva.fileupload.model.CompleteUploadRequestBody;
 import no.unit.nva.fileupload.model.CompleteUploadResponseBody;
@@ -119,11 +118,11 @@ public class CompleteUploadHandlerTest {
     }
 
     @Test
-    public void testHandleRequestWithEmptyElement() {
+    public void testHandleRequestWithEmptyElement() throws IOException {
         InputStream stream =
                 CompleteUploadHandlerTest.class.getResourceAsStream(COMPLETE_UPLOAD_REQUEST_WITH_EMPTY_ELEMENT_JSON);
-        final CompleteUploadRequestBody completeUploadRequestBody = new Gson().fromJson(new InputStreamReader(stream),
-                CompleteUploadRequestBody.class);
+        final CompleteUploadRequestBody completeUploadRequestBody = objectMapper
+                .readValue(new InputStreamReader(stream), CompleteUploadRequestBody.class);
         assertNotNull(completeUploadRequestBody);
 
         final CompleteMultipartUploadRequest completeMultipartUploadRequest =
@@ -135,11 +134,11 @@ public class CompleteUploadHandlerTest {
     }
 
     @Test
-    public void testHandleRequestWithOnePart() {
+    public void testHandleRequestWithOnePart() throws IOException {
         InputStream stream =
                 CompleteUploadHandlerTest.class.getResourceAsStream(COMPLETE_UPLOAD_REQUEST_WITH_ONE_PART_JSON);
-        final CompleteUploadRequestBody completeUploadRequestBody = new Gson().fromJson(new InputStreamReader(stream),
-                CompleteUploadRequestBody.class);
+        final CompleteUploadRequestBody completeUploadRequestBody = objectMapper
+                .readValue(new InputStreamReader(stream), CompleteUploadRequestBody.class);
         assertNotNull(completeUploadRequestBody);
         assertNotNull(completeUploadRequestBody.getParts());
         assertTrue(completeUploadRequestBody.getParts().size() == 1);
