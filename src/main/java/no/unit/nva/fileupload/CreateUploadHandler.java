@@ -100,6 +100,7 @@ public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBo
             requireNonNull(input.getSize());
             MediaType.valueOf(input.getMimetype());
         } catch (Exception e) {
+            logger.warn(e.getMessage());
             throw new InvalidInputException(e);
         }
     }

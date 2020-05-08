@@ -93,6 +93,7 @@ public class PrepareUploadPartHandler extends ApiGatewayHandler<PrepareUploadPar
             requireNonNull(input.getNumber());
             requireNonNull(input.getBody());
         } catch (Exception e) {
+            logger.warn(e.getMessage());
             throw new InvalidInputException(e);
         }
     }

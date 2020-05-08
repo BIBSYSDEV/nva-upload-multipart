@@ -15,6 +15,7 @@ import nva.commons.utils.Environment;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.zalando.problem.Problem;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -30,7 +31,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"checkstyle:javadoctype", "checkstyle:MissingJavadocMethod"})
 public class PrepareUploadPartHandlerTest {
 
     public static final String SAMPLE_KEY = "key";
@@ -62,26 +62,8 @@ public class PrepareUploadPartHandlerTest {
         outputStream = new ByteArrayOutputStream();
     }
 
-    private PrepareUploadPartRequestBody prepareUploadPartRequestBody() {
-        PrepareUploadPartRequestBody requestInputBody =
-                new PrepareUploadPartRequestBody(SAMPLE_UPLOADID, SAMPLE_KEY, SAMPLE_BODY, SAMPLE_PART_NUMBER);
-        return requestInputBody;
-    }
-
     @Test
-    public void testHandleRequestMissingParameters() throws IOException {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(null, null);
-        prepareUploadPartHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<PrepareUploadPartResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
-
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
-    }
-
-    @Test
-    public void testHandleRequest() throws IOException {
+    public void canPrepareUploadPart() throws IOException {
         URL dummyUrl = new URL("http://localhost");
         when(s3client.generatePresignedUrl(Mockito.any(GeneratePresignedUrlRequest.class))).thenReturn(dummyUrl);
 
@@ -100,14 +82,26 @@ public class PrepareUploadPartHandlerTest {
     }
 
     @Test
-    public void testHandleFailingRequest() throws IOException {
+    public void prepareUploadPartWithInvalidInputReturnsBadRequest() throws IOException {
+        InputStream inputStream = handlerUtils
+                .requestObjectToApiGatewayRequestInputSteam(null, null);
+        prepareUploadPartHandler.handleRequest(inputStream, outputStream, context);
+        GatewayResponse<Problem> response = objectMapper.readValue(
+                outputStream.toByteArray(),
+                GatewayResponse.class);
+
+        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    public void prepareUploadPartWithS3ErrorReturnsNotFound() throws IOException {
         when(s3client.generatePresignedUrl(Mockito.any(GeneratePresignedUrlRequest.class)))
                 .thenThrow(AmazonS3Exception.class);
 
         InputStream inputStream = handlerUtils
                 .requestObjectToApiGatewayRequestInputSteam(prepareUploadPartRequestBody(), null);
         prepareUploadPartHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<PrepareUploadPartResponseBody> response = objectMapper.readValue(
+        GatewayResponse<Problem> response = objectMapper.readValue(
                 outputStream.toByteArray(),
                 GatewayResponse.class);
 
@@ -116,29 +110,9 @@ public class PrepareUploadPartHandlerTest {
         assertNotNull(response.getBody());
     }
 
-
-    @Test
-    public void testHandleFailingRequestMissingInputParameters() throws IOException {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(null, null);
-        prepareUploadPartHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<PrepareUploadPartResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
-
-        assertNotNull(response);
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-    }
-
-    @Test
-    public void testPrepareUploadRequestBodyConstructor() {
+    private PrepareUploadPartRequestBody prepareUploadPartRequestBody() {
         PrepareUploadPartRequestBody requestInputBody =
                 new PrepareUploadPartRequestBody(SAMPLE_UPLOADID, SAMPLE_KEY, SAMPLE_BODY, SAMPLE_PART_NUMBER);
-        assertEquals(SAMPLE_UPLOADID, requestInputBody.getUploadId());
-        assertEquals(SAMPLE_KEY, requestInputBody.getKey());
-        assertEquals(SAMPLE_BODY, requestInputBody.getBody());
-        assertEquals(SAMPLE_PART_NUMBER, requestInputBody.getNumber());
+        return requestInputBody;
     }
-
 }

@@ -87,6 +87,7 @@ public class AbortMultipartUploadHandler extends ApiGatewayHandler<AbortMultipar
             requireNonNull(input.getUploadId());
             requireNonNull(input.getKey());
         } catch (Exception e) {
+            logger.warn(e.getMessage());
             throw new InvalidInputException(e);
         }
     }

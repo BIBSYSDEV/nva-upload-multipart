@@ -16,6 +16,7 @@ import nva.commons.handlers.GatewayResponse;
 import nva.commons.utils.Environment;
 import org.junit.Before;
 import org.junit.Test;
+import org.zalando.problem.Problem;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,7 +32,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"checkstyle:javadoctype", "checkstyle:MissingJavadocMethod"})
 public class CreateUploadHandlerTest {
 
     public static final String SAMPLE_FILENAME = "filename";
@@ -66,20 +66,7 @@ public class CreateUploadHandlerTest {
     }
 
     @Test
-    public void testHandleRequestMissingParameters() throws Exception {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(null, null);
-
-        createUploadHandler.handleRequest(inputStream, outputStream, context);
-
-        GatewayResponse<CreateUploadResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
-    }
-
-    @Test
-    public void testHandleRequest() throws IOException {
+    public void canCreateUpload() throws IOException {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
                 .thenReturn(uploadResult());
 
@@ -101,7 +88,20 @@ public class CreateUploadHandlerTest {
     }
 
     @Test
-    public void testHandleFailingRequest() throws IOException {
+    public void createUploadWithInvalidInputReturnBadRequest() throws Exception {
+        InputStream inputStream = handlerUtils
+                .requestObjectToApiGatewayRequestInputSteam(null, null);
+
+        createUploadHandler.handleRequest(inputStream, outputStream, context);
+
+        GatewayResponse<Problem> response = objectMapper.readValue(
+                outputStream.toByteArray(),
+                GatewayResponse.class);
+        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    public void createUploadWithS3ErrorReturnsNotFound() throws IOException {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
                 .thenThrow(SdkClientException.class);
 
@@ -109,7 +109,7 @@ public class CreateUploadHandlerTest {
                 .requestObjectToApiGatewayRequestInputSteam(createUploadRequestBody(), null);
         createUploadHandler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<CreateUploadResponseBody> response = objectMapper.readValue(
+        GatewayResponse<Problem> response = objectMapper.readValue(
                 outputStream.toByteArray(),
                 GatewayResponse.class);
 
@@ -119,7 +119,7 @@ public class CreateUploadHandlerTest {
     }
 
     @Test
-    public void testHandleFailingRequestException() throws IOException {
+    public void createUploadWithRuntimeErrorReturnsServerError() throws IOException {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
                 .thenThrow(RuntimeException.class);
 
@@ -127,7 +127,7 @@ public class CreateUploadHandlerTest {
                 .requestObjectToApiGatewayRequestInputSteam(createUploadRequestBody(), null);
         createUploadHandler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<CreateUploadResponseBody> response = objectMapper.readValue(
+        GatewayResponse<Problem> response = objectMapper.readValue(
                 outputStream.toByteArray(),
                 GatewayResponse.class);
 
@@ -137,22 +137,7 @@ public class CreateUploadHandlerTest {
     }
 
     @Test
-    public void testHandleFailingRequestNoInput() throws IOException {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(null, null);
-        createUploadHandler.handleRequest(inputStream, outputStream, context);
-
-        GatewayResponse<CreateUploadResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
-
-        assertNotNull(response);
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-    }
-
-    @Test
-    public void testHandleFailingRequestMissingFileparameters() throws IOException {
+    public void setCreateUploadHandlerWithMissingFileparametersReturnsBadRequest() throws IOException {
         InputStream inputStream = handlerUtils
                 .requestObjectToApiGatewayRequestInputSteam(createUploadRequestBodyNoFilename(), null);
         createUploadHandler.handleRequest(inputStream, outputStream, context);
@@ -167,7 +152,7 @@ public class CreateUploadHandlerTest {
     }
 
     @Test
-    public void testHandleGetObjectMetadata() {
+    public void canCreateObjectMetadataFromInput() {
         CreateUploadRequestBody requestBody =
                 new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         ObjectMetadata objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
@@ -187,17 +172,6 @@ public class CreateUploadHandlerTest {
         requestBody = new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, "meme/type");
         objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
         assertNotNull(objectMetadata.getContentType());
-    }
-
-    @Test
-    public void testCreateUploadRequestConstructor() {
-        CreateUploadRequestBody requestBody =
-                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
-        requestBody.setMd5hash(SAMPLE_MD5HASH);
-        assertEquals(SAMPLE_FILENAME, requestBody.getFilename());
-        assertEquals(SAMPLE_SIZE_STRING, requestBody.getSize());
-        assertEquals(SAMPLE_MIMETYPE, requestBody.getMimetype());
-        assertEquals(SAMPLE_MD5HASH, requestBody.getMd5hash());
     }
 
     protected CreateUploadRequestBody createUploadRequestBody() {

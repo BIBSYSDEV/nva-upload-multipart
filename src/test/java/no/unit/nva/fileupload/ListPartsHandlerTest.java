@@ -16,6 +16,7 @@ import nva.commons.handlers.GatewayResponse;
 import nva.commons.utils.Environment;
 import org.junit.Before;
 import org.junit.Test;
+import org.zalando.problem.Problem;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -34,7 +35,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"checkstyle:javadoctype", "checkstyle:MissingJavadocMethod"})
 public class ListPartsHandlerTest {
 
     public static final int SAMPLE_PART_NUMBER = 1;
@@ -67,21 +67,8 @@ public class ListPartsHandlerTest {
         outputStream = new ByteArrayOutputStream();
     }
 
-
     @Test
-    public void testHandleRequestMissingParameters() throws IOException {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(null, null);
-        listPartsHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<ListPartsResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                nva.commons.handlers.GatewayResponse.class);
-
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
-    }
-
-    @Test
-    public void testHandleRequest() throws IOException {
+    public void canListParts() throws IOException {
         when(s3client.listParts(any(ListPartsRequest.class))).thenReturn(listPartsResponse());
         InputStream inputStream = handlerUtils
                 .requestObjectToApiGatewayRequestInputSteam(listPartsRequestBody(), null);
@@ -99,7 +86,7 @@ public class ListPartsHandlerTest {
     }
 
     @Test
-    public void testHandleRequestWithManyParts() throws IOException {
+    public void canListPartsWhenManyParts() throws IOException {
         PartListing partListing = truncatedPartListing();
         when(s3client.listParts(any(ListPartsRequest.class))).thenReturn(partListing);
 
@@ -118,13 +105,25 @@ public class ListPartsHandlerTest {
     }
 
     @Test
-    public void testHandleFailingRequest() throws IOException {
+    public void listPartsWithInvalidInputReturnsBadRequest() throws IOException {
+        InputStream inputStream = handlerUtils
+                .requestObjectToApiGatewayRequestInputSteam(null, null);
+        listPartsHandler.handleRequest(inputStream, outputStream, context);
+        GatewayResponse<Problem> response = objectMapper.readValue(
+                outputStream.toByteArray(),
+                nva.commons.handlers.GatewayResponse.class);
+
+        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    public void listPartsWithS3ErrorReturnsNotFound() throws IOException {
         when(s3client.listParts(any(ListPartsRequest.class))).thenThrow(AmazonS3Exception.class);
 
         InputStream inputStream = handlerUtils
                 .requestObjectToApiGatewayRequestInputSteam(listPartsRequestBody(), null);
         listPartsHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<ListPartsResponseBody> response = objectMapper.readValue(
+        GatewayResponse<Problem> response = objectMapper.readValue(
                 outputStream.toByteArray(),
                 GatewayResponse.class);
 
@@ -134,21 +133,7 @@ public class ListPartsHandlerTest {
     }
 
     @Test
-    public void testHandleFailingRequestMissingInputParameters() throws IOException {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(null, null);
-        listPartsHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<ListPartsResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
-
-        assertNotNull(response);
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-    }
-
-    @Test
-    public void testListPartElements() {
+    public void canCreateListPartsElementFromPartSummary() {
         PartSummary partSummary = new PartSummary();
         partSummary.setPartNumber(SAMPLE_PART_NUMBER);
         partSummary.setETag(SAMPLE_ETAG);
@@ -170,11 +155,11 @@ public class ListPartsHandlerTest {
         assertEquals(Integer.toString(SAMPLE_SIZE), listPartsElement.getSize());
     }
 
-    protected ListPartsRequestBody listPartsRequestBody() {
+    private ListPartsRequestBody listPartsRequestBody() {
         return new ListPartsRequestBody(SAMPLE_UPLOAD_ID, SAMPLE_KEY);
     }
 
-    protected PartListing listPartsResponse() {
+    private PartListing listPartsResponse() {
         PartSummary partSummary1 = new PartSummary();
         partSummary1.setPartNumber(1);
         partSummary1.setETag("ETag1");
@@ -193,7 +178,7 @@ public class ListPartsHandlerTest {
         return listPartsResponse;
     }
 
-    protected PartListing truncatedPartListing() {
+    private PartListing truncatedPartListing() {
         PartListing partListing = mock(PartListing.class);
         when(partListing.getParts()).thenReturn(listPartsResponse().getParts());
         when(partListing.isTruncated()).thenReturn(true).thenReturn(false);

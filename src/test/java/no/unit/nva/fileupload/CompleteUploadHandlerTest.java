@@ -15,6 +15,7 @@ import nva.commons.handlers.GatewayResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.zalando.problem.Problem;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,7 +36,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"checkstyle:javadoctype", "checkstyle:MissingJavadocMethod"})
 public class CompleteUploadHandlerTest {
 
     private static final String COMPLETE_UPLOAD_REQUEST_WITH_EMPTY_ELEMENT_JSON
@@ -70,21 +70,7 @@ public class CompleteUploadHandlerTest {
     }
 
     @Test
-    public void testHandleRequestMissingParameters() throws IOException {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(null, null);
-        completeUploadHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<CompleteUploadResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                nva.commons.handlers.GatewayResponse.class);
-
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
-    }
-
-
-
-    @Test
-    public void testHandleRequest() throws IOException {
+    public void canCompleteUpload() throws IOException {
         when(s3client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
                 .thenReturn(new CompleteMultipartUploadResult());
 
@@ -101,14 +87,28 @@ public class CompleteUploadHandlerTest {
     }
 
     @Test
-    public void testHandleFailingRequest() throws IOException {
+    public void completeUploadWithInvalidInputReturnsBadRequest() throws IOException {
+        InputStream inputStream = handlerUtils
+                .requestObjectToApiGatewayRequestInputSteam(null, null);
+        completeUploadHandler.handleRequest(inputStream, outputStream, context);
+        GatewayResponse<Problem> response = objectMapper.readValue(
+                outputStream.toByteArray(),
+                nva.commons.handlers.GatewayResponse.class);
+
+        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
+    }
+
+
+
+    @Test
+    public void completeUploadWithS3ErrorReturnsNotFound() throws IOException {
         when(s3client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
                 .thenThrow(AmazonS3Exception.class);
 
         InputStream inputStream = handlerUtils
                 .requestObjectToApiGatewayRequestInputSteam(completeUploadRequestBody(), null);
         completeUploadHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<CompleteUploadResponseBody> response = objectMapper.readValue(
+        GatewayResponse<Problem> response = objectMapper.readValue(
                 outputStream.toByteArray(),
                 nva.commons.handlers.GatewayResponse.class);
 
@@ -118,7 +118,7 @@ public class CompleteUploadHandlerTest {
     }
 
     @Test
-    public void testHandleRequestWithEmptyElement() throws IOException {
+    public void canCreateRequestWithEmptyElement() throws IOException {
         InputStream stream =
                 CompleteUploadHandlerTest.class.getResourceAsStream(COMPLETE_UPLOAD_REQUEST_WITH_EMPTY_ELEMENT_JSON);
         final CompleteUploadRequestBody completeUploadRequestBody = objectMapper
@@ -134,7 +134,7 @@ public class CompleteUploadHandlerTest {
     }
 
     @Test
-    public void testHandleRequestWithOnePart() throws IOException {
+    public void canCreateRequestWithOnePart() throws IOException {
         InputStream stream =
                 CompleteUploadHandlerTest.class.getResourceAsStream(COMPLETE_UPLOAD_REQUEST_WITH_ONE_PART_JSON);
         final CompleteUploadRequestBody completeUploadRequestBody = objectMapper
@@ -149,12 +149,6 @@ public class CompleteUploadHandlerTest {
 
         assertEquals(completeMultipartUploadRequest.getPartETags().size(),
                 completeUploadRequestBody.getParts().size());
-    }
-
-    @Test
-    public void testHandleRequestConstructor() {
-        CompleteUploadResponseBody completeUploadResponseBody = new CompleteUploadResponseBody(SAMPLE_KEY);
-        assertEquals(SAMPLE_KEY, completeUploadResponseBody.getLocation());
     }
 
     private CompleteUploadRequestBody completeUploadRequestBody() {
