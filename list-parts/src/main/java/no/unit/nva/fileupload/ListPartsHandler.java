@@ -111,6 +111,7 @@ public class ListPartsHandler extends ApiGatewayHandler<ListPartsRequestBody, Li
             requireNonNull(input.getKey());
             requireNonNull(input.getUploadId());
         } catch (Exception e) {
+            logger.warn(e.getMessage());
             throw new InvalidInputException(e);
         }
     }

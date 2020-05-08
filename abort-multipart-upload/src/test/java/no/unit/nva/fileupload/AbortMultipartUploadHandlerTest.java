@@ -11,6 +11,7 @@ import nva.commons.handlers.GatewayResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.zalando.problem.Problem;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -26,7 +27,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"checkstyle:javadoctype", "checkstyle:MissingJavadocMethod"})
 public class AbortMultipartUploadHandlerTest {
 
     public static final String TEST_BUCKET_NAME = "bucketName";
@@ -57,19 +57,7 @@ public class AbortMultipartUploadHandlerTest {
     }
 
     @Test
-    public void testHandleRequestMissingParameters() throws IOException {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(null, null);
-        abortMultipartUploadHandler.handleRequest(inputStream, outputStream, context);
-
-        GatewayResponse<SimpleMessageResponse> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
-    }
-
-    @Test
-    public void testHandleRequest() throws IOException {
+    public void canAbortMultipartUpload() throws IOException {
         InputStream inputStream = handlerUtils
                 .requestObjectToApiGatewayRequestInputSteam(abortMultipartUploadRequestBody(), null);
         abortMultipartUploadHandler.handleRequest(inputStream, outputStream, context);
@@ -82,19 +70,27 @@ public class AbortMultipartUploadHandlerTest {
         assertNotNull(response.getBody());
     }
 
-    private AbortMultipartUploadRequestBody abortMultipartUploadRequestBody() {
-        return new AbortMultipartUploadRequestBody(SAMPLE_UPLOAD_ID, SAMPLE_KEY);
+    @Test
+    public void abortMultipartUploadWithInvalidInputReturnsBadRequest() throws IOException {
+        InputStream inputStream = handlerUtils
+                .requestObjectToApiGatewayRequestInputSteam(null, null);
+        abortMultipartUploadHandler.handleRequest(inputStream, outputStream, context);
+
+        GatewayResponse<Problem> response = objectMapper.readValue(
+                outputStream.toByteArray(),
+                GatewayResponse.class);
+        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
-    public void testHandleFailingRequest() throws IOException {
+    public void abortMultipartUploadWithS3ErrorReturnsNotFound() throws IOException {
         doThrow(AmazonS3Exception.class).when(s3client).abortMultipartUpload(Mockito.any());
 
         InputStream inputStream = handlerUtils
                 .requestObjectToApiGatewayRequestInputSteam(abortMultipartUploadRequestBody(), null);
         abortMultipartUploadHandler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<SimpleMessageResponse> response = objectMapper.readValue(
+        GatewayResponse<Problem> response = objectMapper.readValue(
                 outputStream.toByteArray(),
                 GatewayResponse.class);
 
@@ -103,4 +99,7 @@ public class AbortMultipartUploadHandlerTest {
         assertNotNull(response.getBody());
     }
 
+    private AbortMultipartUploadRequestBody abortMultipartUploadRequestBody() {
+        return new AbortMultipartUploadRequestBody(SAMPLE_UPLOAD_ID, SAMPLE_KEY);
+    }
 }

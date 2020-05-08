@@ -63,13 +63,21 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
         this.s3Client = s3Client;
     }
 
+    @Override
+    protected CompleteUploadResponseBody processInput(CompleteUploadRequestBody input, RequestInfo requestInfo,
+                                                      Context context) throws ApiGatewayException {
+        validate(input);
+        CompleteMultipartUploadResult uploadResult = completeMultipartUpload(toCompleteMultipartUploadRequest(input));
+        return new CompleteUploadResponseBody(uploadResult.getKey());
+    }
+
     /**
      * Extracts and checks requestdata into s3 understandable stuff.
      * @param requestBody Request from frontend
      * @return request to send to S3
      */
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-    public CompleteMultipartUploadRequest toCompleteMultipartUploadRequest(CompleteUploadRequestBody requestBody) {
+    protected CompleteMultipartUploadRequest toCompleteMultipartUploadRequest(CompleteUploadRequestBody requestBody) {
         CompleteMultipartUploadRequest completeMultipartUploadRequest = new CompleteMultipartUploadRequest();
         completeMultipartUploadRequest.setBucketName(bucketName);
         completeMultipartUploadRequest.setKey(requestBody.getKey());
@@ -88,19 +96,12 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
         return new PartETag(completeUploadPart.getPartNumber(), completeUploadPart.getEtag());
     }
 
-    @Override
-    protected CompleteUploadResponseBody processInput(CompleteUploadRequestBody input, RequestInfo requestInfo,
-                                                      Context context) throws ApiGatewayException {
-        validate(input);
-        CompleteMultipartUploadResult uploadResult = completeMultipartUpload(toCompleteMultipartUploadRequest(input));
-        return new CompleteUploadResponseBody(uploadResult.getKey());
-    }
-
     private CompleteMultipartUploadResult completeMultipartUpload(
             CompleteMultipartUploadRequest completeMultipartUploadRequest) throws NotFoundException {
         try {
             return s3Client.completeMultipartUpload(completeMultipartUploadRequest);
         } catch (AmazonS3Exception e) {
+            logger.warn(e.getMessage());
             throw new NotFoundException(S3_ERROR, e);
         }
     }

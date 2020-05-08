@@ -8,7 +8,6 @@ public class CreateUploadRequestBody {
     private final String filename;
     private final String size;
     private final String mimetype;
-    private String md5hash;
 
     /**
      * Creates a request to upload a file to S3.
@@ -38,15 +37,6 @@ public class CreateUploadRequestBody {
 
     public String getMimetype() {
         return mimetype;
-    }
-
-
-    public void setMd5hash(String md5hash) {
-        this.md5hash = md5hash;
-    }
-
-    public String getMd5hash() {
-        return md5hash;
     }
 
 }
