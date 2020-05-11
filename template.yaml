@@ -374,6 +374,7 @@ Resources:
   CreateUploadFunction:
     Type: AWS::Serverless::Function
     Properties:
+      CodeUri: create-upload
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
@@ -393,6 +394,7 @@ Resources:
   ListPartsUploadFunction:
     Type: AWS::Serverless::Function
     Properties:
+      CodeUri: list-parts
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
@@ -412,6 +414,7 @@ Resources:
   PrepareUploadPartFunction:
     Type: AWS::Serverless::Function
     Properties:
+      CodeUri: prepare-upload-part
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
@@ -431,6 +434,7 @@ Resources:
   AbortUploadFunction:
     Type: AWS::Serverless::Function
     Properties:
+      CodeUri: abort-multipart-upload
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
@@ -450,6 +454,7 @@ Resources:
   CompleteUploadFunction:
     Type: AWS::Serverless::Function
     Properties:
+      CodeUri: complete-upload
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
