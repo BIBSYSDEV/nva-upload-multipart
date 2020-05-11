@@ -8,8 +8,6 @@ plugins {
 group 'no.unit.nva'
 version '1.0-SNAPSHOT'
 
-
-
 allprojects {
     repositories {
         jcenter()
@@ -36,16 +34,6 @@ subprojects {
         failFast = true
         finalizedBy jacocoTestReport
     }
-
-    task buildZip(type: Zip) {
-        from compileJava
-        from processResources
-        into('lib') {
-            from configurations.runtimeClasspath
-        }
-    }
-
-    project.tasks.build.dependsOn project.tasks.buildZip
 
     pmd {
         ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
