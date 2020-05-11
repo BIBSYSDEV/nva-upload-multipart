@@ -11,6 +11,7 @@ import no.unit.nva.fileupload.model.CreateUploadResponseBody;
 import no.unit.nva.fileupload.util.S3Constants;
 import no.unit.nva.testutils.HandlerUtils;
 import no.unit.nva.testutils.TestContext;
+import no.unit.nva.testutils.TestHeaders;
 import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.GatewayResponse;
 import nva.commons.utils.Environment;
@@ -22,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static no.unit.nva.testutils.TestHeaders.getRequestHeaders;
 import static nva.commons.utils.JsonUtils.objectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_CREATED;
@@ -37,9 +39,8 @@ public class CreateUploadHandlerTest {
     public static final String SAMPLE_FILENAME = "filename";
     public static final String SAMPLE_MIMETYPE = "mime/type";
     public static final String SAMPLE_SIZE_STRING = "size";
-    public static final String SAMPLE_MD5HASH = "md5hash";
-    public static final String SAMPLE_UPLOADKEY = "uploadKey";
-    public static final String SAMPLE_UPLOADID = "uploadId";
+    public static final String SAMPLE_UPLOAD_KEY = "uploadKey";
+    public static final String SAMPLE_UPLOAD_ID = "uploadId";
     public static final String TEST_BUCKET_NAME = "bucketName";
     public static final String WILDCARD = "*";
 
@@ -66,25 +67,31 @@ public class CreateUploadHandlerTest {
     }
 
     @Test
-    public void canCreateUpload() throws IOException {
+    public void canCreateUpload() throws Exception {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
                 .thenReturn(uploadResult());
 
         InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(createUploadRequestBody(), null);
+                .requestObjectToApiGatewayRequestInputSteam(createUploadRequestBody(), getRequestHeaders());
         createUploadHandler.handleRequest(inputStream, outputStream, context);
 
-        GatewayResponse<CreateUploadResponseBody> response = objectMapper.readValue(
+        GatewayResponse<CreateUploadResponseBody> actual = objectMapper.readValue(
                 outputStream.toByteArray(),
                 GatewayResponse.class);
 
-        assertNotNull(response);
-        assertEquals(SC_CREATED, response.getStatusCode());
-        assertNotNull(response.getBody());
+        GatewayResponse<CreateUploadResponseBody> expected = new GatewayResponse<>(
+            new CreateUploadResponseBody(SAMPLE_UPLOAD_ID, getGeneratedKey(actual)),
+            TestHeaders.getResponseHeaders(),
+            SC_CREATED
+        );
 
-        CreateUploadResponseBody responseBody = response.getBodyObject(CreateUploadResponseBody.class);
-        assertNotNull(responseBody.getKey());
-        assertNotNull(responseBody.getUploadId());
+        assertEquals(expected, actual);
+    }
+
+    // We get the key from the actual response because it was randomly generated
+    protected String getGeneratedKey(GatewayResponse<CreateUploadResponseBody> actual)
+            throws com.fasterxml.jackson.core.JsonProcessingException {
+        return actual.getBodyObject(CreateUploadResponseBody.class).getKey();
     }
 
     @Test
@@ -184,8 +191,8 @@ public class CreateUploadHandlerTest {
 
     protected InitiateMultipartUploadResult uploadResult() {
         InitiateMultipartUploadResult uploadResult =  new InitiateMultipartUploadResult();
-        uploadResult.setKey(SAMPLE_UPLOADKEY);
-        uploadResult.setUploadId(SAMPLE_UPLOADID);
+        uploadResult.setKey(SAMPLE_UPLOAD_KEY);
+        uploadResult.setUploadId(SAMPLE_UPLOAD_ID);
         return uploadResult;
     }
 }
