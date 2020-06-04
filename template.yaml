@@ -374,11 +374,12 @@ Resources:
   CreateUploadFunction:
     Type: AWS::Serverless::Function
     Properties:
+      CodeUri: create-upload
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
-      Handler: no.unit.nva.amazon.s3.CreateUploadHandler::handleRequest
+      Handler: no.unit.nva.fileupload.CreateUploadHandler::handleRequest
       Runtime: java11
       MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
@@ -393,11 +394,12 @@ Resources:
   ListPartsUploadFunction:
     Type: AWS::Serverless::Function
     Properties:
+      CodeUri: list-parts
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
-      Handler: no.unit.nva.amazon.s3.ListPartsHandler::handleRequest
+      Handler: no.unit.nva.fileupload.ListPartsHandler::handleRequest
       Runtime: java11
       MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
@@ -412,11 +414,12 @@ Resources:
   PrepareUploadPartFunction:
     Type: AWS::Serverless::Function
     Properties:
+      CodeUri: prepare-upload-part
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
-      Handler: no.unit.nva.amazon.s3.PrepareUploadPartHandler::handleRequest
+      Handler: no.unit.nva.fileupload.PrepareUploadPartHandler::handleRequest
       Runtime: java11
       MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
@@ -431,11 +434,12 @@ Resources:
   AbortUploadFunction:
     Type: AWS::Serverless::Function
     Properties:
+      CodeUri: abort-multipart-upload
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
-      Handler: no.unit.nva.amazon.s3.AbortMultipartUploadHandler::handleRequest
+      Handler: no.unit.nva.fileupload.AbortMultipartUploadHandler::handleRequest
       Runtime: java11
       MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
@@ -450,11 +454,12 @@ Resources:
   CompleteUploadFunction:
     Type: AWS::Serverless::Function
     Properties:
+      CodeUri: complete-upload
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
-      Handler: no.unit.nva.amazon.s3.CompleteUploadHandler::handleRequest
+      Handler: no.unit.nva.fileupload.CompleteUploadHandler::handleRequest
       Runtime: java11
       MemorySize: 1400
       Role: !GetAtt UploadExecutionRole.Arn
