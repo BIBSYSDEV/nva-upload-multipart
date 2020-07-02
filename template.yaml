@@ -36,9 +36,14 @@ Parameters:
     Description: S3 Bucket to upload files to
 
 Resources:
+  ApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
   UploadApi:
     Type: AWS::Serverless::Api
     Properties:
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
       StageName: Prod
       EndpointConfiguration: REGIONAL
       DefinitionBody:
@@ -381,7 +386,7 @@ Resources:
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.fileupload.CreateUploadHandler::handleRequest
       Runtime: java11
-      MemorySize: 1400
+      MemorySize: 1408
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         CreateEvent:
@@ -401,7 +406,7 @@ Resources:
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.fileupload.ListPartsHandler::handleRequest
       Runtime: java11
-      MemorySize: 1400
+      MemorySize: 1408
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         ListEvent:
@@ -421,7 +426,7 @@ Resources:
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.fileupload.PrepareUploadPartHandler::handleRequest
       Runtime: java11
-      MemorySize: 1400
+      MemorySize: 1408
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         PrepareEvent:
@@ -441,7 +446,7 @@ Resources:
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.fileupload.AbortMultipartUploadHandler::handleRequest
       Runtime: java11
-      MemorySize: 1400
+      MemorySize: 1408
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         AbortEvent:
@@ -461,7 +466,7 @@ Resources:
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.fileupload.CompleteUploadHandler::handleRequest
       Runtime: java11
-      MemorySize: 1400
+      MemorySize: 1408
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
         CompleteEvent:
