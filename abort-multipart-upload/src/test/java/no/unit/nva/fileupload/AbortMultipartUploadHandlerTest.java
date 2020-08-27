@@ -7,6 +7,7 @@ import no.unit.nva.fileupload.util.S3Constants;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.GatewayResponse;
+import nva.commons.utils.Environment;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -43,7 +44,7 @@ public class AbortMultipartUploadHandlerTest {
      */
     @Before
     public void setUp() {
-        nva.commons.utils.Environment environment = mock(nva.commons.utils.Environment.class);
+        Environment environment = mock(Environment.class);
         when(environment.readEnv(ApiGatewayHandler.ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
