@@ -29,6 +29,7 @@ public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBo
 
     private static final Logger logger = LoggerFactory.getLogger(CreateUploadHandler.class);
     public static final String CONTENT_DISPOSITION_TEMPLATE = "filename=\"%s\"";
+    public static final int LAST_ASCII_CODEPOINT = 127;
     private final transient AmazonS3 s3Client;
     private final transient String bucketName;
 
@@ -78,7 +79,7 @@ public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBo
     }
 
     private String getEscapedFilename(CreateUploadRequestBody requestBody) {
-        UnicodeEscaper unicodeEscaper = UnicodeEscaper.above(127);
+        UnicodeEscaper unicodeEscaper = UnicodeEscaper.above(LAST_ASCII_CODEPOINT);
         return unicodeEscaper.translate(requestBody.getFilename());
     }
 
