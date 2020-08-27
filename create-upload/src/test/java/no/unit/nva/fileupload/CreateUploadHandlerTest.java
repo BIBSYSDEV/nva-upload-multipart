@@ -42,7 +42,6 @@ public class CreateUploadHandlerTest {
     public static final String TEST_BUCKET_NAME = "bucketName";
     public static final String WILDCARD = "*";
 
-    private Environment environment;
     private CreateUploadHandler createUploadHandler;
     private ByteArrayOutputStream outputStream;
     private Context context;
@@ -53,7 +52,7 @@ public class CreateUploadHandlerTest {
      */
     @Before
     public void setUp() {
-        environment = mock(Environment.class);
+        Environment environment = mock(Environment.class);
         when(environment.readEnv(ApiGatewayHandler.ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
@@ -70,9 +69,7 @@ public class CreateUploadHandlerTest {
         createUploadHandler.handleRequest(
                 createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
 
-        GatewayResponse<CreateUploadResponseBody> actual = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse<CreateUploadResponseBody> actual = GatewayResponse.fromOutputStream(outputStream);
 
         GatewayResponse<CreateUploadResponseBody> expected = new GatewayResponse<>(
             new CreateUploadResponseBody(SAMPLE_UPLOAD_ID, getGeneratedKey(actual)),
@@ -93,9 +90,7 @@ public class CreateUploadHandlerTest {
     public void createUploadWithInvalidInputReturnBadRequest() throws Exception {
         createUploadHandler.handleRequest(createUploadRequestWithoutBody(), outputStream, context);
 
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
 
@@ -107,9 +102,7 @@ public class CreateUploadHandlerTest {
         createUploadHandler.handleRequest(
                 createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
 
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_INTERNAL_SERVER_ERROR, response.getStatusCode());
@@ -124,9 +117,7 @@ public class CreateUploadHandlerTest {
         createUploadHandler.handleRequest(
                 createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
 
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_INTERNAL_SERVER_ERROR, response.getStatusCode());
@@ -138,9 +129,7 @@ public class CreateUploadHandlerTest {
         createUploadHandler.handleRequest(
                 createUploadRequestWithBody(createUploadRequestBodyNoFilename()), outputStream, context);
 
-        GatewayResponse<CreateUploadResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse<CreateUploadResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());

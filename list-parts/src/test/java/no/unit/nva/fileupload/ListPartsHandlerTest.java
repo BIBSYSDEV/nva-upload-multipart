@@ -41,7 +41,6 @@ public class ListPartsHandlerTest {
     public static final String TEST_BUCKET_NAME = "bucketName";
     public static final String WILDCARD = "*";
 
-    private Environment environment;
     private ListPartsHandler listPartsHandler;
     private ByteArrayOutputStream outputStream;
     private Context context;
@@ -52,7 +51,7 @@ public class ListPartsHandlerTest {
      */
     @Before
     public void setUp() {
-        environment = mock(nva.commons.utils.Environment.class);
+        Environment environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
@@ -65,9 +64,7 @@ public class ListPartsHandlerTest {
     public void canListParts() throws IOException {
         when(s3client.listParts(any(ListPartsRequest.class))).thenReturn(listPartsResponse());
         listPartsHandler.handleRequest(listPartsRequestWithBody(), outputStream, context);
-        GatewayResponse<ListPartsResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                nva.commons.handlers.GatewayResponse.class);
+        GatewayResponse<ListPartsResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
@@ -81,9 +78,7 @@ public class ListPartsHandlerTest {
         PartListing partListing = truncatedPartListing();
         when(s3client.listParts(any(ListPartsRequest.class))).thenReturn(partListing);
         listPartsHandler.handleRequest(listPartsRequestWithBody(), outputStream, context);
-        GatewayResponse<ListPartsResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse<ListPartsResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
@@ -95,25 +90,20 @@ public class ListPartsHandlerTest {
     @Test
     public void listPartsWithInvalidInputReturnsBadRequest() throws IOException {
         listPartsHandler.handleRequest(listPartsRequestWithoutBody(), outputStream, context);
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                nva.commons.handlers.GatewayResponse.class);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
 
     private InputStream listPartsRequestWithoutBody() throws com.fasterxml.jackson.core.JsonProcessingException {
-        return new HandlerRequestBuilder<ListPartsRequestBody>(objectMapper)
-                .build();
+        return new HandlerRequestBuilder<ListPartsRequestBody>(objectMapper).build();
     }
 
     @Test
     public void listPartsWithS3ErrorReturnsNotFound() throws IOException {
         when(s3client.listParts(any(ListPartsRequest.class))).thenThrow(AmazonS3Exception.class);
         listPartsHandler.handleRequest(listPartsRequestWithBody(), outputStream, context);
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_NOT_FOUND, response.getStatusCode());
