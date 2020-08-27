@@ -33,7 +33,6 @@ public class AbortMultipartUploadHandlerTest {
     public static final String SAMPLE_KEY = "key";
     public static final String WILDCARD = "*";
 
-    private nva.commons.utils.Environment environment;
     private AbortMultipartUploadHandler abortMultipartUploadHandler;
     private ByteArrayOutputStream outputStream;
     private Context context;
@@ -44,7 +43,7 @@ public class AbortMultipartUploadHandlerTest {
      */
     @Before
     public void setUp() {
-        environment = mock(nva.commons.utils.Environment.class);
+        nva.commons.utils.Environment environment = mock(nva.commons.utils.Environment.class);
         when(environment.readEnv(ApiGatewayHandler.ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
@@ -57,9 +56,7 @@ public class AbortMultipartUploadHandlerTest {
     public void canAbortMultipartUpload() throws IOException {
         abortMultipartUploadHandler.handleRequest(abortMultipartUploadRequestWithBody(), outputStream, context);
 
-        GatewayResponse<SimpleMessageResponse> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse<SimpleMessageResponse> response = GatewayResponse.fromOutputStream(outputStream);
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -69,9 +66,7 @@ public class AbortMultipartUploadHandlerTest {
     public void abortMultipartUploadWithInvalidInputReturnsBadRequest() throws IOException {
         abortMultipartUploadHandler.handleRequest(abortMultipartUploadRequestWithoutBody(), outputStream, context);
 
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
 
@@ -80,15 +75,12 @@ public class AbortMultipartUploadHandlerTest {
         doThrow(AmazonS3Exception.class).when(s3client).abortMultipartUpload(Mockito.any());
         abortMultipartUploadHandler.handleRequest(abortMultipartUploadRequestWithBody(), outputStream, context);
 
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
     }
-
 
     private InputStream abortMultipartUploadRequestWithBody()
             throws com.fasterxml.jackson.core.JsonProcessingException {

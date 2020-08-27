@@ -28,7 +28,6 @@ import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,8 +41,8 @@ public class CompleteUploadHandlerTest {
     public static final String SAMPLE_KEY = "key";
     public static final String SAMPLE_UPLOAD_ID = "uploadID";
     public static final String WILDCARD = "*";
+    public static final int EXPECTED_ONE_PART = 1;
 
-    private nva.commons.utils.Environment environment;
     private CompleteUploadHandler completeUploadHandler;
     private ByteArrayOutputStream outputStream;
     private Context context;
@@ -54,7 +53,7 @@ public class CompleteUploadHandlerTest {
      */
     @Before
     public void setUp() {
-        environment = mock(nva.commons.utils.Environment.class);
+        nva.commons.utils.Environment environment = mock(nva.commons.utils.Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
@@ -69,9 +68,7 @@ public class CompleteUploadHandlerTest {
                 .thenReturn(new CompleteMultipartUploadResult());
 
         completeUploadHandler.handleRequest(completeUploadRequestWithBody(), outputStream, context);
-        GatewayResponse<CompleteUploadResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                nva.commons.handlers.GatewayResponse.class);
+        GatewayResponse<CompleteUploadResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
@@ -81,10 +78,7 @@ public class CompleteUploadHandlerTest {
     @Test
     public void completeUploadWithInvalidInputReturnsBadRequest() throws IOException {
         completeUploadHandler.handleRequest(completeUploadRequestWithoutBody(), outputStream, context);
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                nva.commons.handlers.GatewayResponse.class);
-
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
 
@@ -94,9 +88,7 @@ public class CompleteUploadHandlerTest {
                 .thenThrow(AmazonS3Exception.class);
 
         completeUploadHandler.handleRequest(completeUploadRequestWithBody(), outputStream, context);
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                nva.commons.handlers.GatewayResponse.class);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_NOT_FOUND, response.getStatusCode());
@@ -127,7 +119,7 @@ public class CompleteUploadHandlerTest {
                 .readValue(new InputStreamReader(stream), CompleteUploadRequestBody.class);
         assertNotNull(completeUploadRequestBody);
         assertNotNull(completeUploadRequestBody.getParts());
-        assertTrue(completeUploadRequestBody.getParts().size() == 1);
+        assertEquals(EXPECTED_ONE_PART, completeUploadRequestBody.getParts().size());
 
         final CompleteMultipartUploadRequest completeMultipartUploadRequest =
                 completeUploadHandler.toCompleteMultipartUploadRequest(completeUploadRequestBody);

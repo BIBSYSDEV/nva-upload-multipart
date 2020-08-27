@@ -37,7 +37,6 @@ public class PrepareUploadPartHandlerTest {
     public static final String TEST_BUCKET_NAME = "bucketName";
     public static final String WILDCARD = "*";
 
-    private Environment environment;
     private PrepareUploadPartHandler prepareUploadPartHandler;
     private ByteArrayOutputStream outputStream;
     private Context context;
@@ -48,7 +47,7 @@ public class PrepareUploadPartHandlerTest {
      */
     @Before
     public void setUp() {
-        environment = mock(Environment.class);
+        Environment environment = mock(Environment.class);
         when(environment.readEnv(ApiGatewayHandler.ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
@@ -63,9 +62,7 @@ public class PrepareUploadPartHandlerTest {
         when(s3client.generatePresignedUrl(Mockito.any(GeneratePresignedUrlRequest.class))).thenReturn(dummyUrl);
 
         prepareUploadPartHandler.handleRequest(prepareUploadPartRequestWithBody(), outputStream, context);
-        GatewayResponse<PrepareUploadPartResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse<PrepareUploadPartResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
@@ -77,9 +74,7 @@ public class PrepareUploadPartHandlerTest {
     @Test
     public void prepareUploadPartWithInvalidInputReturnsBadRequest() throws IOException {
         prepareUploadPartHandler.handleRequest(prepareUploadPartRequestWithoutBody(), outputStream, context);
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
@@ -90,9 +85,7 @@ public class PrepareUploadPartHandlerTest {
                 .thenThrow(AmazonS3Exception.class);
 
         prepareUploadPartHandler.handleRequest(prepareUploadPartRequestWithBody(), outputStream, context);
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_NOT_FOUND, response.getStatusCode());
