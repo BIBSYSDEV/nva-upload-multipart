@@ -15,6 +15,7 @@ import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.RequestInfo;
 import nva.commons.utils.Environment;
 import nva.commons.utils.JacocoGenerated;
+import org.apache.commons.text.translate.UnicodeEscaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,7 @@ import static org.apache.http.HttpStatus.SC_CREATED;
 public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBody, CreateUploadResponseBody> {
 
     private static final Logger logger = LoggerFactory.getLogger(CreateUploadHandler.class);
+    public static final String CONTENT_DISPOSITION_TEMPLATE = "filename=\"%s\"";
     private final transient AmazonS3 s3Client;
     private final transient String bucketName;
 
@@ -70,15 +72,19 @@ public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBo
     protected ObjectMetadata toObjectMetadata(CreateUploadRequestBody requestBody) {
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.setContentMD5(null);
-        objectMetadata.setContentDisposition(toContentDisposition(requestBody.getFilename()));
+        objectMetadata.setContentDisposition(toContentDisposition(requestBody));
         objectMetadata.setContentType(requestBody.getMimetype());
         return objectMetadata;
     }
 
-    private String toContentDisposition(String filename) {
-        return String.format("filename=\"%s\"", filename);
+    private String getEscapedFilename(CreateUploadRequestBody requestBody) {
+        UnicodeEscaper unicodeEscaper = UnicodeEscaper.above(127);
+        return unicodeEscaper.translate(requestBody.getFilename());
     }
 
+    private String toContentDisposition(CreateUploadRequestBody requestBody) {
+        return String.format(CONTENT_DISPOSITION_TEMPLATE, getEscapedFilename(requestBody));
+    }
 
     @Override
     protected CreateUploadResponseBody processInput(CreateUploadRequestBody input, RequestInfo requestInfo,
