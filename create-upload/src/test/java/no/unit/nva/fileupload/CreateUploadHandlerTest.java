@@ -9,8 +9,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import no.unit.nva.fileupload.model.CreateUploadRequestBody;
 import no.unit.nva.fileupload.model.CreateUploadResponseBody;
 import no.unit.nva.fileupload.util.S3Constants;
-import no.unit.nva.testutils.HandlerUtils;
-import no.unit.nva.testutils.TestContext;
+import no.unit.nva.testutils.HandlerRequestBuilder;
 import no.unit.nva.testutils.TestHeaders;
 import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.GatewayResponse;
@@ -23,7 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static no.unit.nva.testutils.TestHeaders.getRequestHeaders;
 import static nva.commons.utils.JsonUtils.objectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_CREATED;
@@ -46,7 +44,6 @@ public class CreateUploadHandlerTest {
 
     private Environment environment;
     private CreateUploadHandler createUploadHandler;
-    private HandlerUtils handlerUtils;
     private ByteArrayOutputStream outputStream;
     private Context context;
     private AmazonS3Client s3client;
@@ -61,8 +58,7 @@ public class CreateUploadHandlerTest {
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
         createUploadHandler = new CreateUploadHandler(environment, s3client, TEST_BUCKET_NAME);
-        context = new TestContext();
-        handlerUtils = new HandlerUtils(objectMapper);
+        context = mock(Context.class);
         outputStream = new ByteArrayOutputStream();
     }
 
@@ -71,9 +67,8 @@ public class CreateUploadHandlerTest {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
                 .thenReturn(uploadResult());
 
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(createUploadRequestBody(), getRequestHeaders());
-        createUploadHandler.handleRequest(inputStream, outputStream, context);
+        createUploadHandler.handleRequest(
+                createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
 
         GatewayResponse<CreateUploadResponseBody> actual = objectMapper.readValue(
                 outputStream.toByteArray(),
@@ -96,10 +91,7 @@ public class CreateUploadHandlerTest {
 
     @Test
     public void createUploadWithInvalidInputReturnBadRequest() throws Exception {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(null, null);
-
-        createUploadHandler.handleRequest(inputStream, outputStream, context);
+        createUploadHandler.handleRequest(createUploadRequestWithoutBody(), outputStream, context);
 
         GatewayResponse<Problem> response = objectMapper.readValue(
                 outputStream.toByteArray(),
@@ -112,9 +104,8 @@ public class CreateUploadHandlerTest {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
                 .thenThrow(SdkClientException.class);
 
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(createUploadRequestBody(), null);
-        createUploadHandler.handleRequest(inputStream, outputStream, context);
+        createUploadHandler.handleRequest(
+                createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
 
         GatewayResponse<Problem> response = objectMapper.readValue(
                 outputStream.toByteArray(),
@@ -130,9 +121,8 @@ public class CreateUploadHandlerTest {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
                 .thenThrow(RuntimeException.class);
 
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(createUploadRequestBody(), null);
-        createUploadHandler.handleRequest(inputStream, outputStream, context);
+        createUploadHandler.handleRequest(
+                createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
 
         GatewayResponse<Problem> response = objectMapper.readValue(
                 outputStream.toByteArray(),
@@ -144,10 +134,9 @@ public class CreateUploadHandlerTest {
     }
 
     @Test
-    public void setCreateUploadHandlerWithMissingFileparametersReturnsBadRequest() throws IOException {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(createUploadRequestBodyNoFilename(), null);
-        createUploadHandler.handleRequest(inputStream, outputStream, context);
+    public void setCreateUploadHandlerWithMissingFileParametersReturnsBadRequest() throws IOException {
+        createUploadHandler.handleRequest(
+                createUploadRequestWithBody(createUploadRequestBodyNoFilename()), outputStream, context);
 
         GatewayResponse<CreateUploadResponseBody> response = objectMapper.readValue(
                 outputStream.toByteArray(),
@@ -179,6 +168,18 @@ public class CreateUploadHandlerTest {
         requestBody = new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, "meme/type");
         objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
         assertNotNull(objectMetadata.getContentType());
+    }
+
+    private InputStream createUploadRequestWithBody(CreateUploadRequestBody uploadRequestBody)
+            throws com.fasterxml.jackson.core.JsonProcessingException {
+        return new HandlerRequestBuilder<CreateUploadRequestBody>(objectMapper)
+                .withBody(uploadRequestBody)
+                .build();
+    }
+
+    private InputStream createUploadRequestWithoutBody() throws com.fasterxml.jackson.core.JsonProcessingException {
+        return new HandlerRequestBuilder<CreateUploadRequestBody>(objectMapper)
+                .build();
     }
 
     protected CreateUploadRequestBody createUploadRequestBody() {

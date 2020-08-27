@@ -4,8 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import no.unit.nva.fileupload.util.S3Constants;
-import no.unit.nva.testutils.HandlerUtils;
-import no.unit.nva.testutils.TestContext;
+import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.GatewayResponse;
 import org.junit.Before;
@@ -36,7 +35,6 @@ public class AbortMultipartUploadHandlerTest {
 
     private nva.commons.utils.Environment environment;
     private AbortMultipartUploadHandler abortMultipartUploadHandler;
-    private HandlerUtils handlerUtils;
     private ByteArrayOutputStream outputStream;
     private Context context;
     private AmazonS3Client s3client;
@@ -51,16 +49,13 @@ public class AbortMultipartUploadHandlerTest {
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
         abortMultipartUploadHandler = new AbortMultipartUploadHandler(environment, s3client, TEST_BUCKET_NAME);
-        context = new TestContext();
-        handlerUtils = new HandlerUtils(objectMapper);
+        context = mock(Context.class);
         outputStream = new ByteArrayOutputStream();
     }
 
     @Test
     public void canAbortMultipartUpload() throws IOException {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(abortMultipartUploadRequestBody(), null);
-        abortMultipartUploadHandler.handleRequest(inputStream, outputStream, context);
+        abortMultipartUploadHandler.handleRequest(abortMultipartUploadRequestWithBody(), outputStream, context);
 
         GatewayResponse<SimpleMessageResponse> response = objectMapper.readValue(
                 outputStream.toByteArray(),
@@ -72,9 +67,7 @@ public class AbortMultipartUploadHandlerTest {
 
     @Test
     public void abortMultipartUploadWithInvalidInputReturnsBadRequest() throws IOException {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(null, null);
-        abortMultipartUploadHandler.handleRequest(inputStream, outputStream, context);
+        abortMultipartUploadHandler.handleRequest(abortMultipartUploadRequestWithoutBody(), outputStream, context);
 
         GatewayResponse<Problem> response = objectMapper.readValue(
                 outputStream.toByteArray(),
@@ -85,10 +78,7 @@ public class AbortMultipartUploadHandlerTest {
     @Test
     public void abortMultipartUploadWithS3ErrorReturnsNotFound() throws IOException {
         doThrow(AmazonS3Exception.class).when(s3client).abortMultipartUpload(Mockito.any());
-
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(abortMultipartUploadRequestBody(), null);
-        abortMultipartUploadHandler.handleRequest(inputStream, outputStream, context);
+        abortMultipartUploadHandler.handleRequest(abortMultipartUploadRequestWithBody(), outputStream, context);
 
         GatewayResponse<Problem> response = objectMapper.readValue(
                 outputStream.toByteArray(),
@@ -97,6 +87,20 @@ public class AbortMultipartUploadHandlerTest {
         assertNotNull(response);
         assertEquals(SC_NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
+    }
+
+
+    private InputStream abortMultipartUploadRequestWithBody()
+            throws com.fasterxml.jackson.core.JsonProcessingException {
+        return new HandlerRequestBuilder<AbortMultipartUploadRequestBody>(objectMapper)
+                .withBody(abortMultipartUploadRequestBody())
+                .build();
+    }
+
+    private InputStream abortMultipartUploadRequestWithoutBody()
+            throws com.fasterxml.jackson.core.JsonProcessingException {
+        return new HandlerRequestBuilder<AbortMultipartUploadRequestBody>(objectMapper)
+                .build();
     }
 
     private AbortMultipartUploadRequestBody abortMultipartUploadRequestBody() {

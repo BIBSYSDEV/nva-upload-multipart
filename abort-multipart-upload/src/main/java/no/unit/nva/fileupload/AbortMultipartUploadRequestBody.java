@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class AbortMultipartUploadRequestBody {
-
+    @JsonProperty("uploadId")
     private final String uploadId;
+    @JsonProperty("key")
     private final String key;
 
     @JsonCreator
