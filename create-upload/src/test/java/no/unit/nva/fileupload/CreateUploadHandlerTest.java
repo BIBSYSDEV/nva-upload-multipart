@@ -166,7 +166,7 @@ public class CreateUploadHandlerTest {
     }
 
     @Test
-    public void canEscapeUnicodeFilenameInContentDisposition() {
+    public void createUploadRequestReturnsEscapedUnicodeWhenInputIsUnicode() {
         CreateUploadRequestBody requestBody =
                 new CreateUploadRequestBody(SAMPLE_UNICODE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         ObjectMetadata objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
