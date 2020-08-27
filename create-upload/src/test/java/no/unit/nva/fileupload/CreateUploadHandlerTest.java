@@ -170,7 +170,6 @@ public class CreateUploadHandlerTest {
         CreateUploadRequestBody requestBody =
                 new CreateUploadRequestBody(SAMPLE_UNICODE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         ObjectMetadata objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
-        assertNotNull(objectMetadata.getContentDisposition());
         String actual =  objectMetadata.getContentDisposition();
         String expected = String.format(CONTENT_DISPOSITION_TEMPLATE, EXPECTED_ESCAPED_FILENAME);
         assertEquals(expected, actual);
