@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static no.unit.nva.fileupload.CreateUploadHandler.CONTENT_DISPOSITION_TEMPLATE;
 import static nva.commons.utils.JsonUtils.objectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_CREATED;
@@ -41,6 +42,11 @@ public class CreateUploadHandlerTest {
     public static final String SAMPLE_UPLOAD_ID = "uploadId";
     public static final String TEST_BUCKET_NAME = "bucketName";
     public static final String WILDCARD = "*";
+    public static final String SAMPLE_UNICODE_FILENAME = "normal_üñīḉøđḝ_ƒıļæ_ňåɱë";
+    public static final String EXPECTED_ESCAPED_FILENAME = "normal_\\u00FC\\u00F1\\u012B\\u1E09\\u00F8\\u0111\\u1E1D_"
+            + "\\u0192\\u0131\\u013C\\u00E6_\\u0148\\u00E5\\u0271\\u00EB";
+    public static final String EMPTY_STRING = "";
+    public static final String SOME_MIME_TYPE = "meme/type";
 
     private CreateUploadHandler createUploadHandler;
     private ByteArrayOutputStream outputStream;
@@ -145,18 +151,29 @@ public class CreateUploadHandlerTest {
         requestBody = new CreateUploadRequestBody(null, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
         assertNotNull(objectMetadata);
-        requestBody = new CreateUploadRequestBody("", SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
+        requestBody = new CreateUploadRequestBody(EMPTY_STRING, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
         assertNotNull(objectMetadata);
         requestBody = new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, null);
         objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
         assertNotNull(objectMetadata);
-        requestBody = new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, "");
+        requestBody = new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, EMPTY_STRING);
         objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
         assertNotNull(objectMetadata);
-        requestBody = new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, "meme/type");
+        requestBody = new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SOME_MIME_TYPE);
         objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
         assertNotNull(objectMetadata.getContentType());
+    }
+
+    @Test
+    public void canEscapeUnicodeFilenameInContentDisposition() {
+        CreateUploadRequestBody requestBody =
+                new CreateUploadRequestBody(SAMPLE_UNICODE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
+        ObjectMetadata objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
+        assertNotNull(objectMetadata.getContentDisposition());
+        String actual =  objectMetadata.getContentDisposition();
+        String expected = String.format(CONTENT_DISPOSITION_TEMPLATE, EXPECTED_ESCAPED_FILENAME);
+        assertEquals(expected, actual);
     }
 
     private InputStream createUploadRequestWithBody(CreateUploadRequestBody uploadRequestBody)

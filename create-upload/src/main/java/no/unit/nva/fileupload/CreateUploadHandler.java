@@ -15,6 +15,7 @@ import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.RequestInfo;
 import nva.commons.utils.Environment;
 import nva.commons.utils.JacocoGenerated;
+import org.apache.commons.text.translate.UnicodeEscaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,8 @@ import static org.apache.http.HttpStatus.SC_CREATED;
 public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBody, CreateUploadResponseBody> {
 
     private static final Logger logger = LoggerFactory.getLogger(CreateUploadHandler.class);
+    public static final String CONTENT_DISPOSITION_TEMPLATE = "filename=\"%s\"";
+    public static final int LAST_ASCII_CODEPOINT = 127;
     private final transient AmazonS3 s3Client;
     private final transient String bucketName;
 
@@ -70,15 +73,19 @@ public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBo
     protected ObjectMetadata toObjectMetadata(CreateUploadRequestBody requestBody) {
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.setContentMD5(null);
-        objectMetadata.setContentDisposition(toContentDisposition(requestBody.getFilename()));
+        objectMetadata.setContentDisposition(extractFormattedContentDispositionForFilename(requestBody));
         objectMetadata.setContentType(requestBody.getMimetype());
         return objectMetadata;
     }
 
-    private String toContentDisposition(String filename) {
-        return String.format("filename=\"%s\"", filename);
+    private String escapeFilename(String filename) {
+        UnicodeEscaper unicodeEscaper = UnicodeEscaper.above(LAST_ASCII_CODEPOINT);
+        return unicodeEscaper.translate(filename);
     }
 
+    private String extractFormattedContentDispositionForFilename(CreateUploadRequestBody requestBody) {
+        return String.format(CONTENT_DISPOSITION_TEMPLATE, escapeFilename(requestBody.getFilename()));
+    }
 
     @Override
     protected CreateUploadResponseBody processInput(CreateUploadRequestBody input, RequestInfo requestInfo,
