@@ -73,18 +73,18 @@ public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBo
     protected ObjectMetadata toObjectMetadata(CreateUploadRequestBody requestBody) {
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.setContentMD5(null);
-        objectMetadata.setContentDisposition(toContentDisposition(requestBody));
+        objectMetadata.setContentDisposition(extractFormattedContentDispositionForFilename(requestBody));
         objectMetadata.setContentType(requestBody.getMimetype());
         return objectMetadata;
     }
 
-    private String getEscapedFilename(CreateUploadRequestBody requestBody) {
+    private String escapeFilename(String filename) {
         UnicodeEscaper unicodeEscaper = UnicodeEscaper.above(LAST_ASCII_CODEPOINT);
-        return unicodeEscaper.translate(requestBody.getFilename());
+        return unicodeEscaper.translate(filename);
     }
 
-    private String toContentDisposition(CreateUploadRequestBody requestBody) {
-        return String.format(CONTENT_DISPOSITION_TEMPLATE, getEscapedFilename(requestBody));
+    private String extractFormattedContentDispositionForFilename(CreateUploadRequestBody requestBody) {
+        return String.format(CONTENT_DISPOSITION_TEMPLATE, escapeFilename(requestBody.getFilename()));
     }
 
     @Override
