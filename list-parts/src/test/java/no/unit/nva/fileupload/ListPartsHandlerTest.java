@@ -7,8 +7,7 @@ import com.amazonaws.services.s3.model.ListPartsRequest;
 import com.amazonaws.services.s3.model.PartListing;
 import com.amazonaws.services.s3.model.PartSummary;
 import no.unit.nva.fileupload.util.S3Constants;
-import no.unit.nva.testutils.HandlerUtils;
-import no.unit.nva.testutils.TestContext;
+import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.handlers.GatewayResponse;
 import nva.commons.utils.Environment;
 import org.junit.Before;
@@ -42,9 +41,7 @@ public class ListPartsHandlerTest {
     public static final String TEST_BUCKET_NAME = "bucketName";
     public static final String WILDCARD = "*";
 
-    private Environment environment;
     private ListPartsHandler listPartsHandler;
-    private HandlerUtils handlerUtils;
     private ByteArrayOutputStream outputStream;
     private Context context;
     private AmazonS3Client s3client;
@@ -54,26 +51,20 @@ public class ListPartsHandlerTest {
      */
     @Before
     public void setUp() {
-        environment = mock(nva.commons.utils.Environment.class);
+        Environment environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
         listPartsHandler = new ListPartsHandler(environment, s3client, TEST_BUCKET_NAME);
-        context = new TestContext();
-        handlerUtils = new HandlerUtils(objectMapper);
+        context = mock(Context.class);
         outputStream = new ByteArrayOutputStream();
     }
 
     @Test
     public void canListParts() throws IOException {
         when(s3client.listParts(any(ListPartsRequest.class))).thenReturn(listPartsResponse());
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(listPartsRequestBody(), null);
-
-        listPartsHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<ListPartsResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                nva.commons.handlers.GatewayResponse.class);
+        listPartsHandler.handleRequest(listPartsRequestWithBody(), outputStream, context);
+        GatewayResponse<ListPartsResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
@@ -86,13 +77,8 @@ public class ListPartsHandlerTest {
     public void canListPartsWhenManyParts() throws IOException {
         PartListing partListing = truncatedPartListing();
         when(s3client.listParts(any(ListPartsRequest.class))).thenReturn(partListing);
-
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(listPartsRequestBody(), null);
-        listPartsHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<ListPartsResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        listPartsHandler.handleRequest(listPartsRequestWithBody(), outputStream, context);
+        GatewayResponse<ListPartsResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
@@ -103,26 +89,21 @@ public class ListPartsHandlerTest {
 
     @Test
     public void listPartsWithInvalidInputReturnsBadRequest() throws IOException {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(null, null);
-        listPartsHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                nva.commons.handlers.GatewayResponse.class);
+        listPartsHandler.handleRequest(listPartsRequestWithoutBody(), outputStream, context);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
+    }
+
+    private InputStream listPartsRequestWithoutBody() throws com.fasterxml.jackson.core.JsonProcessingException {
+        return new HandlerRequestBuilder<ListPartsRequestBody>(objectMapper).build();
     }
 
     @Test
     public void listPartsWithS3ErrorReturnsNotFound() throws IOException {
         when(s3client.listParts(any(ListPartsRequest.class))).thenThrow(AmazonS3Exception.class);
-
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(listPartsRequestBody(), null);
-        listPartsHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        listPartsHandler.handleRequest(listPartsRequestWithBody(), outputStream, context);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_NOT_FOUND, response.getStatusCode());
@@ -138,7 +119,6 @@ public class ListPartsHandlerTest {
 
         final ListPartsElement listPartsElement = ListPartsElement.of(partSummary);
 
-
         assertEquals(SAMPLE_ETAG, listPartsElement.getEtag());
         assertEquals(Integer.toString(SAMPLE_PART_NUMBER), listPartsElement.getPartNumber());
         assertEquals(Integer.toString(SAMPLE_SIZE), listPartsElement.getSize());
@@ -150,6 +130,12 @@ public class ListPartsHandlerTest {
         assertEquals(SAMPLE_ETAG, listPartsElement.getEtag());
         assertEquals(Integer.toString(SAMPLE_PART_NUMBER), listPartsElement.getPartNumber());
         assertEquals(Integer.toString(SAMPLE_SIZE), listPartsElement.getSize());
+    }
+
+    private InputStream listPartsRequestWithBody() throws com.fasterxml.jackson.core.JsonProcessingException {
+        return new HandlerRequestBuilder<ListPartsRequestBody>(objectMapper)
+                .withBody(listPartsRequestBody())
+                .build();
     }
 
     private ListPartsRequestBody listPartsRequestBody() {

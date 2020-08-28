@@ -6,9 +6,9 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadResult;
 import no.unit.nva.fileupload.util.S3Constants;
-import no.unit.nva.testutils.HandlerUtils;
-import no.unit.nva.testutils.TestContext;
+import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.handlers.GatewayResponse;
+import nva.commons.utils.Environment;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -29,7 +29,6 @@ import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,10 +42,9 @@ public class CompleteUploadHandlerTest {
     public static final String SAMPLE_KEY = "key";
     public static final String SAMPLE_UPLOAD_ID = "uploadID";
     public static final String WILDCARD = "*";
+    public static final int EXPECTED_ONE_PART = 1;
 
-    private nva.commons.utils.Environment environment;
     private CompleteUploadHandler completeUploadHandler;
-    private HandlerUtils handlerUtils;
     private ByteArrayOutputStream outputStream;
     private Context context;
     private AmazonS3Client s3client;
@@ -56,13 +54,12 @@ public class CompleteUploadHandlerTest {
      */
     @Before
     public void setUp() {
-        environment = mock(nva.commons.utils.Environment.class);
+        Environment environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
         completeUploadHandler = new CompleteUploadHandler(environment, s3client, TEST_BUCKET_NAME);
-        context = new TestContext();
-        handlerUtils = new HandlerUtils(objectMapper);
+        context = mock(Context.class);
         outputStream = new ByteArrayOutputStream();
     }
 
@@ -71,12 +68,8 @@ public class CompleteUploadHandlerTest {
         when(s3client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
                 .thenReturn(new CompleteMultipartUploadResult());
 
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(completeUploadRequestBody(), null);
-        completeUploadHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<CompleteUploadResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                nva.commons.handlers.GatewayResponse.class);
+        completeUploadHandler.handleRequest(completeUploadRequestWithBody(), outputStream, context);
+        GatewayResponse<CompleteUploadResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
@@ -85,29 +78,18 @@ public class CompleteUploadHandlerTest {
 
     @Test
     public void completeUploadWithInvalidInputReturnsBadRequest() throws IOException {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(null, null);
-        completeUploadHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                nva.commons.handlers.GatewayResponse.class);
-
+        completeUploadHandler.handleRequest(completeUploadRequestWithoutBody(), outputStream, context);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
-
-
 
     @Test
     public void completeUploadWithS3ErrorReturnsNotFound() throws IOException {
         when(s3client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
                 .thenThrow(AmazonS3Exception.class);
 
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(completeUploadRequestBody(), null);
-        completeUploadHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                nva.commons.handlers.GatewayResponse.class);
+        completeUploadHandler.handleRequest(completeUploadRequestWithBody(), outputStream, context);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_NOT_FOUND, response.getStatusCode());
@@ -138,7 +120,7 @@ public class CompleteUploadHandlerTest {
                 .readValue(new InputStreamReader(stream), CompleteUploadRequestBody.class);
         assertNotNull(completeUploadRequestBody);
         assertNotNull(completeUploadRequestBody.getParts());
-        assertTrue(completeUploadRequestBody.getParts().size() == 1);
+        assertEquals(EXPECTED_ONE_PART, completeUploadRequestBody.getParts().size());
 
         final CompleteMultipartUploadRequest completeMultipartUploadRequest =
                 completeUploadHandler.toCompleteMultipartUploadRequest(completeUploadRequestBody);
@@ -148,12 +130,21 @@ public class CompleteUploadHandlerTest {
                 completeUploadRequestBody.getParts().size());
     }
 
+    private InputStream completeUploadRequestWithBody() throws com.fasterxml.jackson.core.JsonProcessingException {
+        return new HandlerRequestBuilder<CompleteUploadRequestBody>(objectMapper)
+                .withBody(completeUploadRequestBody())
+                .build();
+    }
+
+    private InputStream completeUploadRequestWithoutBody() throws com.fasterxml.jackson.core.JsonProcessingException {
+        return new HandlerRequestBuilder<CompleteMultipartUploadRequest>(objectMapper)
+                .build();
+    }
+
     private CompleteUploadRequestBody completeUploadRequestBody() {
         List<CompleteUploadPart> partEtags = new ArrayList<>();
         partEtags.add(new CompleteUploadPart(1, "eTag1"));
-        CompleteUploadRequestBody requestInputBody = new CompleteUploadRequestBody(
-                SAMPLE_UPLOAD_ID, SAMPLE_KEY, partEtags);
-        return requestInputBody;
+        return new CompleteUploadRequestBody(SAMPLE_UPLOAD_ID, SAMPLE_KEY, partEtags);
     }
 
 }

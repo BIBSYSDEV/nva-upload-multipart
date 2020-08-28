@@ -5,8 +5,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import no.unit.nva.fileupload.util.S3Constants;
-import no.unit.nva.testutils.HandlerUtils;
-import no.unit.nva.testutils.TestContext;
+import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.GatewayResponse;
 import nva.commons.utils.Environment;
@@ -38,9 +37,7 @@ public class PrepareUploadPartHandlerTest {
     public static final String TEST_BUCKET_NAME = "bucketName";
     public static final String WILDCARD = "*";
 
-    private Environment environment;
     private PrepareUploadPartHandler prepareUploadPartHandler;
-    private HandlerUtils handlerUtils;
     private ByteArrayOutputStream outputStream;
     private Context context;
     private AmazonS3Client s3client;
@@ -50,13 +47,12 @@ public class PrepareUploadPartHandlerTest {
      */
     @Before
     public void setUp() {
-        environment = mock(Environment.class);
+        Environment environment = mock(Environment.class);
         when(environment.readEnv(ApiGatewayHandler.ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
         prepareUploadPartHandler = new PrepareUploadPartHandler(environment, s3client, TEST_BUCKET_NAME);
-        context = new TestContext();
-        handlerUtils = new HandlerUtils(objectMapper);
+        context = mock(Context.class);
         outputStream = new ByteArrayOutputStream();
     }
 
@@ -65,12 +61,8 @@ public class PrepareUploadPartHandlerTest {
         URL dummyUrl = new URL("http://localhost");
         when(s3client.generatePresignedUrl(Mockito.any(GeneratePresignedUrlRequest.class))).thenReturn(dummyUrl);
 
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(prepareUploadPartRequestBody(), null);
-        prepareUploadPartHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<PrepareUploadPartResponseBody> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        prepareUploadPartHandler.handleRequest(prepareUploadPartRequestWithBody(), outputStream, context);
+        GatewayResponse<PrepareUploadPartResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
@@ -81,12 +73,8 @@ public class PrepareUploadPartHandlerTest {
 
     @Test
     public void prepareUploadPartWithInvalidInputReturnsBadRequest() throws IOException {
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(null, null);
-        prepareUploadPartHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        prepareUploadPartHandler.handleRequest(prepareUploadPartRequestWithoutBody(), outputStream, context);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
@@ -96,21 +84,27 @@ public class PrepareUploadPartHandlerTest {
         when(s3client.generatePresignedUrl(Mockito.any(GeneratePresignedUrlRequest.class)))
                 .thenThrow(AmazonS3Exception.class);
 
-        InputStream inputStream = handlerUtils
-                .requestObjectToApiGatewayRequestInputSteam(prepareUploadPartRequestBody(), null);
-        prepareUploadPartHandler.handleRequest(inputStream, outputStream, context);
-        GatewayResponse<Problem> response = objectMapper.readValue(
-                outputStream.toByteArray(),
-                GatewayResponse.class);
+        prepareUploadPartHandler.handleRequest(prepareUploadPartRequestWithBody(), outputStream, context);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
         assertEquals(SC_NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
     }
 
+    private InputStream prepareUploadPartRequestWithBody() throws com.fasterxml.jackson.core.JsonProcessingException {
+        return new HandlerRequestBuilder<PrepareUploadPartRequestBody>(objectMapper)
+                .withBody(prepareUploadPartRequestBody())
+                .build();
+    }
+
+    private InputStream prepareUploadPartRequestWithoutBody()
+            throws com.fasterxml.jackson.core.JsonProcessingException {
+        return new HandlerRequestBuilder<PrepareUploadPartRequestBody>(objectMapper)
+                .build();
+    }
+
     private PrepareUploadPartRequestBody prepareUploadPartRequestBody() {
-        PrepareUploadPartRequestBody requestInputBody =
-                new PrepareUploadPartRequestBody(SAMPLE_UPLOADID, SAMPLE_KEY, SAMPLE_BODY, SAMPLE_PART_NUMBER);
-        return requestInputBody;
+        return new PrepareUploadPartRequestBody(SAMPLE_UPLOADID, SAMPLE_KEY, SAMPLE_BODY, SAMPLE_PART_NUMBER);
     }
 }
