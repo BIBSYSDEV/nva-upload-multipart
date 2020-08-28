@@ -29,6 +29,7 @@ import static org.apache.http.HttpStatus.SC_CREATED;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -37,7 +38,7 @@ public class CreateUploadHandlerTest {
 
     public static final String SAMPLE_FILENAME = "filename";
     public static final String SAMPLE_MIMETYPE = "mime/type";
-    public static final String SAMPLE_SIZE_STRING = "size";
+    public static final String SAMPLE_SIZE_STRING = "222";
     public static final String SAMPLE_UPLOAD_KEY = "uploadKey";
     public static final String SAMPLE_UPLOAD_ID = "uploadId";
     public static final String TEST_BUCKET_NAME = "bucketName";
@@ -46,7 +47,8 @@ public class CreateUploadHandlerTest {
     public static final String EXPECTED_ESCAPED_FILENAME = "normal_\\u00FC\\u00F1\\u012B\\u1E09\\u00F8\\u0111\\u1E1D_"
             + "\\u0192\\u0131\\u013C\\u00E6_\\u0148\\u00E5\\u0271\\u00EB";
     public static final String EMPTY_STRING = "";
-    public static final String SOME_MIME_TYPE = "meme/type";
+    public static final String INVALID_MIME_TYPE = "meme/type";
+    public static final String NULL_STRING = "null";
 
     private CreateUploadHandler createUploadHandler;
     private ByteArrayOutputStream outputStream;
@@ -95,7 +97,6 @@ public class CreateUploadHandlerTest {
     @Test
     public void createUploadWithInvalidInputReturnBadRequest() throws Exception {
         createUploadHandler.handleRequest(createUploadRequestWithoutBody(), outputStream, context);
-
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
@@ -104,10 +105,8 @@ public class CreateUploadHandlerTest {
     public void createUploadWithS3ErrorReturnsNotFound() throws IOException {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
                 .thenThrow(SdkClientException.class);
-
         createUploadHandler.handleRequest(
                 createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
-
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
@@ -119,10 +118,8 @@ public class CreateUploadHandlerTest {
     public void createUploadWithRuntimeErrorReturnsServerError() throws IOException {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
                 .thenThrow(RuntimeException.class);
-
         createUploadHandler.handleRequest(
                 createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
-
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
@@ -134,7 +131,6 @@ public class CreateUploadHandlerTest {
     public void setCreateUploadHandlerWithMissingFileParametersReturnsBadRequest() throws IOException {
         createUploadHandler.handleRequest(
                 createUploadRequestWithBody(createUploadRequestBodyNoFilename()), outputStream, context);
-
         GatewayResponse<CreateUploadResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
@@ -143,36 +139,68 @@ public class CreateUploadHandlerTest {
     }
 
     @Test
-    public void canCreateObjectMetadataFromInput() {
+    public void createUploadRequestBodyReturnsValidContentDispositionWhenInputIsValid() {
         CreateUploadRequestBody requestBody =
                 new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
-        ObjectMetadata objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
-        assertNotNull(objectMetadata);
-        requestBody = new CreateUploadRequestBody(null, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
-        objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
-        assertNotNull(objectMetadata);
-        requestBody = new CreateUploadRequestBody(EMPTY_STRING, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
-        objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
-        assertNotNull(objectMetadata);
-        requestBody = new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, null);
-        objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
-        assertNotNull(objectMetadata);
-        requestBody = new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, EMPTY_STRING);
-        objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
-        assertNotNull(objectMetadata);
-        requestBody = new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SOME_MIME_TYPE);
-        objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
-        assertNotNull(objectMetadata.getContentType());
+        String actual = createUploadHandler.toObjectMetadata(requestBody).getContentDisposition();
+        String expected = generateContentDisposition(SAMPLE_FILENAME);
+        assertEquals(expected, actual);
     }
 
     @Test
-    public void createUploadRequestReturnsEscapedUnicodeWhenInputIsUnicode() {
+    public void createUploadRequestBodyReturnsValidContentDispositionWhenFilenameIsNull() {
+        CreateUploadRequestBody requestBody =
+                new CreateUploadRequestBody(null, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
+        String actual = createUploadHandler.toObjectMetadata(requestBody).getContentDisposition();
+        String expected = generateContentDisposition(NULL_STRING);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void createUploadRequestBodyReturnsValidContentDispositionWhenFilenameIsEmptyString() {
+        CreateUploadRequestBody requestBody =
+                new CreateUploadRequestBody(EMPTY_STRING, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
+        String actual = createUploadHandler.toObjectMetadata(requestBody).getContentDisposition();
+        String expected = generateContentDisposition(EMPTY_STRING);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void createUploadRequestBodyReturnsNullContentTypeWhenMimeTypeIsNull() {
+        CreateUploadRequestBody requestBody =
+                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, null);
+        String actual = createUploadHandler.toObjectMetadata(requestBody).getContentType();
+        assertNull(actual);
+    }
+
+    @Test
+    public void createUploadRequestBodyReturnsEmptyStringContentTypeWhenMimeTypeIsEmptyString() {
+        CreateUploadRequestBody requestBody =
+                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, EMPTY_STRING);
+        String actual = createUploadHandler.toObjectMetadata(requestBody).getContentType();
+        assertEquals(EMPTY_STRING, actual);
+    }
+
+    @Test
+    public void createUploadRequestBodyReturnsContentTypeWhenMimeTypeIsInvalidString() {
+        CreateUploadRequestBody requestBody =
+                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, INVALID_MIME_TYPE);
+        String actual = createUploadHandler.toObjectMetadata(requestBody).getContentType();
+        assertEquals(INVALID_MIME_TYPE, actual);
+    }
+
+    @Test
+    public void createUploadRequestReturnsValidContentDispositionWithEscapedUnicodeWhenInputIsUnicode() {
         CreateUploadRequestBody requestBody =
                 new CreateUploadRequestBody(SAMPLE_UNICODE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         ObjectMetadata objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
         String actual =  objectMetadata.getContentDisposition();
-        String expected = String.format(CONTENT_DISPOSITION_TEMPLATE, EXPECTED_ESCAPED_FILENAME);
+        String expected = generateContentDisposition(EXPECTED_ESCAPED_FILENAME);
         assertEquals(expected, actual);
+    }
+
+    private String generateContentDisposition(String filename) {
+        return String.format(CONTENT_DISPOSITION_TEMPLATE, filename);
     }
 
     private InputStream createUploadRequestWithBody(CreateUploadRequestBody uploadRequestBody)
