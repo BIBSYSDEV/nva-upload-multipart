@@ -2,7 +2,7 @@ def problemVersion = '0.23.0'
 def jerseyVersion = '2.22.2'
 
 dependencies {
-    api group: 'com.github.BIBSYSDEV', name: 'nva-commons', version: '0.4.3'
+    api group: 'com.github.BIBSYSDEV', name: 'nva-commons', version: '0.7.4'
     api group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.0'
     api group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.715'
     api group: 'org.glassfish.jersey.core', name: 'jersey-common', version: jerseyVersion
