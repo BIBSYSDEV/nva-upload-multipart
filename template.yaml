@@ -33,7 +33,8 @@ Parameters:
     Type: String
     Description: Base path mapping in CustomDomain
   S3UploadBucket:
-    Type: String
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: NVA/PublicationData
     Description: S3 Bucket to upload files to
 
 Resources:
