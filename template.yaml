@@ -29,13 +29,15 @@ Parameters:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: Custom API to connect this lambda to
     Default: CustomDomain
-  CustomDomainBasePath:
-    Type: String
-    Description: Base path mapping in CustomDomain
   S3UploadBucket:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Default: /NVA/PublicationData
     Description: S3 Bucket to upload files to
+  CustomDomainBasePath:
+    Type: String
+    Description: Base path mapping in CustomDomain
+    Default: upload
+
 
 Resources:
   ApiAccessLogGroup:
