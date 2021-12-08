@@ -2,15 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Backend for uploading files to Amazon S3 via Uppy / Companion.
 
-Metadata:
-  AWS::ServerlessRepo::Application:
-    Name: UploadMultipart
-    Description: Backend for uploading files to Amazon S3
-    Author: Unit
-    SpdxLicenseId: MIT
-    LicenseUrl: LICENSE
-    Labels: ['git-repo:${GIT_REPO}', 'git-commit:${CODEBUILD_RESOLVED_SOURCE_VERSION}', 'build@${BUILD_TIMESTAMP}']
-
 Globals:
   Function:
     Timeout: 20
