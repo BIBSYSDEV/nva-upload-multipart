@@ -416,7 +416,7 @@ Resources:
         ListEvent:
           Type: Api
           Properties:
-            Path: /listParts
+            Path: /listparts
             Method: post
             RestApiId: !Ref UploadApi
 
