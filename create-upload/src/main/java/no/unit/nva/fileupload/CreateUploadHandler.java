@@ -1,29 +1,28 @@
 package no.unit.nva.fileupload;
 
+import static java.util.Objects.requireNonNull;
+import static org.apache.http.HttpStatus.SC_CREATED;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import java.util.UUID;
+import javax.ws.rs.core.MediaType;
 import no.unit.nva.fileupload.exception.InvalidInputException;
 import no.unit.nva.fileupload.model.CreateUploadRequestBody;
 import no.unit.nva.fileupload.model.CreateUploadResponseBody;
 import no.unit.nva.fileupload.util.S3Constants;
 import no.unit.nva.fileupload.util.S3Utils;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.handlers.ApiGatewayHandler;
-import nva.commons.handlers.RequestInfo;
-import nva.commons.utils.Environment;
-import nva.commons.utils.JacocoGenerated;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 import org.apache.commons.text.translate.UnicodeEscaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.core.MediaType;
-import java.util.UUID;
-
-import static java.util.Objects.requireNonNull;
-import static org.apache.http.HttpStatus.SC_CREATED;
 
 public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBody, CreateUploadResponseBody> {
 
@@ -59,7 +58,7 @@ public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBo
      * Construct for lambda eventhandler to create an upload request for S3.
      */
     public CreateUploadHandler(Environment environment, AmazonS3 s3Client, String bucketName) {
-        super(CreateUploadRequestBody.class, environment, logger);
+        super(CreateUploadRequestBody.class, environment);
         this.bucketName = bucketName;
         this.s3Client = s3Client;
 

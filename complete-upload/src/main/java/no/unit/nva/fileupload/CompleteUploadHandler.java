@@ -10,11 +10,11 @@ import no.unit.nva.fileupload.exception.InvalidInputException;
 import no.unit.nva.fileupload.exception.NotFoundException;
 import no.unit.nva.fileupload.util.S3Constants;
 import no.unit.nva.fileupload.util.S3Utils;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.handlers.ApiGatewayHandler;
-import nva.commons.handlers.RequestInfo;
-import nva.commons.utils.Environment;
-import nva.commons.utils.JacocoGenerated;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +58,7 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
      * Construct for lambda event handler to create an upload request for S3.
      */
     public CompleteUploadHandler(Environment environment, AmazonS3 s3Client, String bucketName) {
-        super(CompleteUploadRequestBody.class, environment, logger);
+        super(CompleteUploadRequestBody.class, environment);
         this.bucketName = bucketName;
         this.s3Client = s3Client;
     }

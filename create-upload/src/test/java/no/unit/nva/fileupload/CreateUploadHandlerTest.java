@@ -1,38 +1,40 @@
 package no.unit.nva.fileupload;
 
-import com.amazonaws.SdkClientException;
-import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import no.unit.nva.fileupload.model.CreateUploadRequestBody;
-import no.unit.nva.fileupload.model.CreateUploadResponseBody;
-import no.unit.nva.fileupload.util.S3Constants;
-import no.unit.nva.testutils.HandlerRequestBuilder;
-import no.unit.nva.testutils.TestHeaders;
-import nva.commons.handlers.ApiGatewayHandler;
-import nva.commons.handlers.GatewayResponse;
-import nva.commons.utils.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.zalando.problem.Problem;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 import static no.unit.nva.fileupload.CreateUploadHandler.CONTENT_DISPOSITION_TEMPLATE;
-import static nva.commons.utils.JsonUtils.objectMapper;
+import static nva.commons.core.JsonUtils.dtoObjectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
-import static org.apache.http.HttpStatus.SC_CREATED;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import com.amazonaws.SdkClientException;
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import no.unit.nva.fileupload.model.CreateUploadRequestBody;
+import no.unit.nva.fileupload.model.CreateUploadResponseBody;
+import no.unit.nva.fileupload.util.S3Constants;
+import no.unit.nva.testutils.HandlerRequestBuilder;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.GatewayResponse;
+import nva.commons.core.Environment;
+import nva.commons.core.JsonUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.zalando.problem.Problem;
 
 public class CreateUploadHandlerTest {
 
@@ -45,7 +47,8 @@ public class CreateUploadHandlerTest {
     public static final String WILDCARD = "*";
     public static final String SAMPLE_UNICODE_FILENAME = "normal_üñīḉøđḝ_ƒıļæ_ňåɱë";
     public static final String EXPECTED_ESCAPED_FILENAME = "normal_\\u00FC\\u00F1\\u012B\\u1E09\\u00F8\\u0111\\u1E1D_"
-            + "\\u0192\\u0131\\u013C\\u00E6_\\u0148\\u00E5\\u0271\\u00EB";
+                                                           + "\\u0192\\u0131\\u013C\\u00E6_\\u0148\\u00E5\\u0271"
+                                                           + "\\u00EB";
     public static final String EMPTY_STRING = "";
     public static final String INVALID_MIME_TYPE = "meme/type";
     public static final String NULL_STRING = "null";
@@ -54,6 +57,7 @@ public class CreateUploadHandlerTest {
     private ByteArrayOutputStream outputStream;
     private Context context;
     private AmazonS3Client s3client;
+    private ObjectMapper objectMapper = dtoObjectMapper;
 
     /**
      * Setup test env.
@@ -72,26 +76,16 @@ public class CreateUploadHandlerTest {
     @Test
     public void canCreateUpload() throws Exception {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
-                .thenReturn(uploadResult());
+            .thenReturn(uploadResult());
 
         createUploadHandler.handleRequest(
-                createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
+            createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
 
         GatewayResponse<CreateUploadResponseBody> actual = GatewayResponse.fromOutputStream(outputStream);
-
-        GatewayResponse<CreateUploadResponseBody> expected = new GatewayResponse<>(
-            new CreateUploadResponseBody(SAMPLE_UPLOAD_ID, getGeneratedKey(actual)),
-            TestHeaders.getResponseHeaders(),
-            SC_CREATED
-        );
-
-        assertEquals(expected, actual);
-    }
-
-    // We get the key from the actual response because it was randomly generated
-    protected String getGeneratedKey(GatewayResponse<CreateUploadResponseBody> actual)
-            throws com.fasterxml.jackson.core.JsonProcessingException {
-        return actual.getBodyObject(CreateUploadResponseBody.class).getKey();
+        var actualBody = actual.getBodyObject(CreateUploadResponseBody.class);
+        var expectedBody = new CreateUploadResponseBody(SAMPLE_UPLOAD_ID, getGeneratedKey(actual));
+        assertThat(actualBody, is(equalTo(expectedBody)));
+        assertThat(actual.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_CREATED)));
     }
 
     @Test
@@ -104,9 +98,9 @@ public class CreateUploadHandlerTest {
     @Test
     public void createUploadWithS3ErrorReturnsNotFound() throws IOException {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
-                .thenThrow(SdkClientException.class);
+            .thenThrow(SdkClientException.class);
         createUploadHandler.handleRequest(
-                createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
+            createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
@@ -117,9 +111,9 @@ public class CreateUploadHandlerTest {
     @Test
     public void createUploadWithRuntimeErrorReturnsServerError() throws IOException {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
-                .thenThrow(RuntimeException.class);
+            .thenThrow(RuntimeException.class);
         createUploadHandler.handleRequest(
-                createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
+            createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
@@ -130,7 +124,7 @@ public class CreateUploadHandlerTest {
     @Test
     public void setCreateUploadHandlerWithMissingFileParametersReturnsBadRequest() throws IOException {
         createUploadHandler.handleRequest(
-                createUploadRequestWithBody(createUploadRequestBodyNoFilename()), outputStream, context);
+            createUploadRequestWithBody(createUploadRequestBodyNoFilename()), outputStream, context);
         GatewayResponse<CreateUploadResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
 
         assertNotNull(response);
@@ -141,7 +135,7 @@ public class CreateUploadHandlerTest {
     @Test
     public void createUploadRequestBodyReturnsValidContentDispositionWhenInputIsValid() {
         CreateUploadRequestBody requestBody =
-                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
+            new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         String actual = createUploadHandler.toObjectMetadata(requestBody).getContentDisposition();
         String expected = generateContentDisposition(SAMPLE_FILENAME);
         assertEquals(expected, actual);
@@ -150,7 +144,7 @@ public class CreateUploadHandlerTest {
     @Test
     public void createUploadRequestBodyReturnsValidContentDispositionWhenFilenameIsNull() {
         CreateUploadRequestBody requestBody =
-                new CreateUploadRequestBody(null, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
+            new CreateUploadRequestBody(null, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         String actual = createUploadHandler.toObjectMetadata(requestBody).getContentDisposition();
         String expected = generateContentDisposition(NULL_STRING);
         assertEquals(expected, actual);
@@ -159,7 +153,7 @@ public class CreateUploadHandlerTest {
     @Test
     public void createUploadRequestBodyReturnsValidContentDispositionWhenFilenameIsEmptyString() {
         CreateUploadRequestBody requestBody =
-                new CreateUploadRequestBody(EMPTY_STRING, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
+            new CreateUploadRequestBody(EMPTY_STRING, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         String actual = createUploadHandler.toObjectMetadata(requestBody).getContentDisposition();
         String expected = generateContentDisposition(EMPTY_STRING);
         assertEquals(expected, actual);
@@ -168,7 +162,7 @@ public class CreateUploadHandlerTest {
     @Test
     public void createUploadRequestBodyReturnsNullContentTypeWhenMimeTypeIsNull() {
         CreateUploadRequestBody requestBody =
-                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, null);
+            new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, null);
         String actual = createUploadHandler.toObjectMetadata(requestBody).getContentType();
         assertNull(actual);
     }
@@ -176,7 +170,7 @@ public class CreateUploadHandlerTest {
     @Test
     public void createUploadRequestBodyReturnsEmptyStringContentTypeWhenMimeTypeIsEmptyString() {
         CreateUploadRequestBody requestBody =
-                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, EMPTY_STRING);
+            new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, EMPTY_STRING);
         String actual = createUploadHandler.toObjectMetadata(requestBody).getContentType();
         assertEquals(EMPTY_STRING, actual);
     }
@@ -184,7 +178,7 @@ public class CreateUploadHandlerTest {
     @Test
     public void createUploadRequestBodyReturnsContentTypeWhenMimeTypeIsInvalidString() {
         CreateUploadRequestBody requestBody =
-                new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, INVALID_MIME_TYPE);
+            new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, INVALID_MIME_TYPE);
         String actual = createUploadHandler.toObjectMetadata(requestBody).getContentType();
         assertEquals(INVALID_MIME_TYPE, actual);
     }
@@ -192,27 +186,17 @@ public class CreateUploadHandlerTest {
     @Test
     public void createUploadRequestReturnsValidContentDispositionWithEscapedUnicodeWhenInputIsUnicode() {
         CreateUploadRequestBody requestBody =
-                new CreateUploadRequestBody(SAMPLE_UNICODE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
+            new CreateUploadRequestBody(SAMPLE_UNICODE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         ObjectMetadata objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
-        String actual =  objectMetadata.getContentDisposition();
+        String actual = objectMetadata.getContentDisposition();
         String expected = generateContentDisposition(EXPECTED_ESCAPED_FILENAME);
         assertEquals(expected, actual);
     }
 
-    private String generateContentDisposition(String filename) {
-        return String.format(CONTENT_DISPOSITION_TEMPLATE, filename);
-    }
-
-    private InputStream createUploadRequestWithBody(CreateUploadRequestBody uploadRequestBody)
-            throws com.fasterxml.jackson.core.JsonProcessingException {
-        return new HandlerRequestBuilder<CreateUploadRequestBody>(objectMapper)
-                .withBody(uploadRequestBody)
-                .build();
-    }
-
-    private InputStream createUploadRequestWithoutBody() throws com.fasterxml.jackson.core.JsonProcessingException {
-        return new HandlerRequestBuilder<CreateUploadRequestBody>(objectMapper)
-                .build();
+    // We get the key from the actual response because it was randomly generated
+    protected String getGeneratedKey(GatewayResponse<CreateUploadResponseBody> actual)
+        throws com.fasterxml.jackson.core.JsonProcessingException {
+        return actual.getBodyObject(CreateUploadResponseBody.class).getKey();
     }
 
     protected CreateUploadRequestBody createUploadRequestBody() {
@@ -224,9 +208,25 @@ public class CreateUploadHandlerTest {
     }
 
     protected InitiateMultipartUploadResult uploadResult() {
-        InitiateMultipartUploadResult uploadResult =  new InitiateMultipartUploadResult();
+        InitiateMultipartUploadResult uploadResult = new InitiateMultipartUploadResult();
         uploadResult.setKey(SAMPLE_UPLOAD_KEY);
         uploadResult.setUploadId(SAMPLE_UPLOAD_ID);
         return uploadResult;
+    }
+
+    private String generateContentDisposition(String filename) {
+        return String.format(CONTENT_DISPOSITION_TEMPLATE, filename);
+    }
+
+    private InputStream createUploadRequestWithBody(CreateUploadRequestBody uploadRequestBody)
+        throws com.fasterxml.jackson.core.JsonProcessingException {
+        return new HandlerRequestBuilder<CreateUploadRequestBody>(objectMapper)
+            .withBody(uploadRequestBody)
+            .build();
+    }
+
+    private InputStream createUploadRequestWithoutBody() throws com.fasterxml.jackson.core.JsonProcessingException {
+        return new HandlerRequestBuilder<CreateUploadRequestBody>(objectMapper)
+            .build();
     }
 }

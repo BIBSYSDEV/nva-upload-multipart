@@ -1,27 +1,24 @@
 package no.unit.nva.fileupload;
 
-
+import static java.util.Objects.requireNonNull;
+import static org.apache.http.HttpStatus.SC_OK;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
+import java.net.URL;
 import no.unit.nva.fileupload.exception.InvalidInputException;
 import no.unit.nva.fileupload.exception.NotFoundException;
 import no.unit.nva.fileupload.util.S3Constants;
 import no.unit.nva.fileupload.util.S3Utils;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.handlers.ApiGatewayHandler;
-import nva.commons.handlers.RequestInfo;
-import nva.commons.utils.Environment;
-import nva.commons.utils.JacocoGenerated;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.URL;
-
-import static java.util.Objects.requireNonNull;
-import static org.apache.http.HttpStatus.SC_OK;
 
 
 public class PrepareUploadPartHandler extends ApiGatewayHandler<PrepareUploadPartRequestBody,
@@ -62,7 +59,7 @@ public class PrepareUploadPartHandler extends ApiGatewayHandler<PrepareUploadPar
      * Construct for lambda eventhandler to create an upload request for S3.
      */
     public PrepareUploadPartHandler(Environment environment, AmazonS3 s3Client, String bucketName) {
-        super(PrepareUploadPartRequestBody.class, environment, logger);
+        super(PrepareUploadPartRequestBody.class, environment);
         this.bucketName = bucketName;
         this.s3Client = s3Client;
     }
