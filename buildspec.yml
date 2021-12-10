@@ -4,13 +4,13 @@ phases:
   install:
     runtime-versions:
       java: openjdk11
+      python: 3.8
     commands:
-      # Upgrade AWS CLI to the latest version
-      # Install aws-sam-cli
+      - python3 -m venv /root/venv
+      - . /root/venv/bin/activate
       - pip3 install aws-sam-cli
   build:
     commands:
-      # Use AWS SAM to build and package the application by using AWS CloudFormation
       - sam build
       - sam package --s3-bucket $S3_BUCKET --output-template-file packaged_raw.yaml
   post_build:
@@ -21,3 +21,7 @@ phases:
 artifacts:
   files:
     - packaged.yaml
+cache:
+  paths:
+    - '/root/venv/**/*'
+    - '/root/.cache/pip/**/*'
