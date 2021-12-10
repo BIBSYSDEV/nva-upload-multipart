@@ -1,6 +1,6 @@
 package no.unit.nva.fileupload.exception;
 
-import nva.commons.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
 import org.apache.http.HttpStatus;
 
 public class InvalidInputException extends ApiGatewayException {

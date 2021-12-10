@@ -1,3 +1,7 @@
 dependencies {
     implementation project(':file-commons')
 }
+
+test{
+    environment "ALLOWED_ORIGIN", "*"
+}

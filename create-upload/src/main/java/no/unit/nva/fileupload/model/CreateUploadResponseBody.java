@@ -2,9 +2,9 @@ package no.unit.nva.fileupload.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import nva.commons.utils.JacocoGenerated;
 
 import java.util.Objects;
+import nva.commons.core.JacocoGenerated;
 
 public class CreateUploadResponseBody {
 

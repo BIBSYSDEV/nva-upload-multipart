@@ -5,9 +5,10 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import no.unit.nva.fileupload.util.S3Constants;
 import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.handlers.ApiGatewayHandler;
-import nva.commons.handlers.GatewayResponse;
-import nva.commons.utils.Environment;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.GatewayResponse;
+import nva.commons.core.Environment;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -17,7 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static nva.commons.utils.JsonUtils.objectMapper;
+import static nva.commons.core.JsonUtils.dtoObjectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
@@ -85,14 +86,14 @@ public class AbortMultipartUploadHandlerTest {
 
     private InputStream abortMultipartUploadRequestWithBody()
             throws com.fasterxml.jackson.core.JsonProcessingException {
-        return new HandlerRequestBuilder<AbortMultipartUploadRequestBody>(objectMapper)
+        return new HandlerRequestBuilder<AbortMultipartUploadRequestBody>(dtoObjectMapper)
                 .withBody(abortMultipartUploadRequestBody())
                 .build();
     }
 
     private InputStream abortMultipartUploadRequestWithoutBody()
             throws com.fasterxml.jackson.core.JsonProcessingException {
-        return new HandlerRequestBuilder<AbortMultipartUploadRequestBody>(objectMapper)
+        return new HandlerRequestBuilder<AbortMultipartUploadRequestBody>(dtoObjectMapper)
                 .build();
     }
 
