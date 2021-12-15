@@ -2,15 +2,13 @@ def problemVersion = '0.23.0'
 def jerseyVersion = '2.22.2'
 
 dependencies {
-    api group: 'com.github.bibsysdev', name: 'core', version: '1.16.23'
-    api group: 'com.github.bibsysdev', name: 'apigateway', version: '1.16.23'
+    api group: 'com.github.bibsysdev', name: 'core', version: '1.16.24'
+    api group: 'com.github.bibsysdev', name: 'apigateway', version: '1.16.24'
     api group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.0'
     api group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.715'
     api group: 'org.glassfish.jersey.core', name: 'jersey-common', version: jerseyVersion
     api group: 'org.zalando', name: 'problem', version: problemVersion
     api group: 'org.zalando', name: 'jackson-datatype-problem', version: problemVersion
-
-
 }
 
 test{
