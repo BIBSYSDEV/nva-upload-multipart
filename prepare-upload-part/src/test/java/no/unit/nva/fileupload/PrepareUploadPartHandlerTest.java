@@ -40,7 +40,7 @@ public class PrepareUploadPartHandlerTest {
     private ByteArrayOutputStream outputStream;
     private Context context;
     private AmazonS3Client s3client;
-    private ObjectMapper objectMapper= dtoObjectMapper;
+    private final ObjectMapper objectMapper = dtoObjectMapper;
 
     /**
      * Setup test env.
