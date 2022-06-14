@@ -51,7 +51,7 @@ Resources:
             post:
               summary: Create (multipart) upload
               security:
-                - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend']
+                - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend', 'aws.cognito.signin.user.admin']
               requestBody:
                 required: true
                 content:
@@ -87,7 +87,7 @@ Resources:
             post:
               summary: List the parts of a file that have already been uploaded.
               security:
-                - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend']
+                - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend', 'aws.cognito.signin.user.admin']
               requestBody:
                 required: true
                 content:
@@ -123,7 +123,7 @@ Resources:
             post:
               summary:  Generates a presigned URL to upload a single part
               security:
-                - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend']
+                - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend', 'aws.cognito.signin.user.admin']
               requestBody:
                 required: true
                 content:
@@ -159,7 +159,7 @@ Resources:
             post:
               summary: Aborts a Multipart upload, and deletes all parts that have been uploaded so far.
               security:
-                - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend']
+                - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend', 'aws.cognito.signin.user.admin']
               requestBody:
                 required: true
                 content:
@@ -195,7 +195,7 @@ Resources:
             post:
               summary: Completes a Multipart upload, combining all parts into a single object in the S3 bucket
               security:
-                - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend']
+                - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend', 'aws.cognito.signin.user.admin']
               requestBody:
                 required: true
                 content:
