@@ -1,6 +1,6 @@
 package no.unit.nva.fileupload;
 
-import static nva.commons.core.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
@@ -67,7 +67,8 @@ public class CompleteUploadHandlerTest {
                 .thenReturn(new CompleteMultipartUploadResult());
 
         completeUploadHandler.handleRequest(completeUploadRequestWithBody(), outputStream, context);
-        GatewayResponse<CompleteUploadResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<CompleteUploadResponseBody> response =
+            GatewayResponse.fromOutputStream(outputStream, CompleteUploadResponseBody.class);
 
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
@@ -77,7 +78,7 @@ public class CompleteUploadHandlerTest {
     @Test
     public void completeUploadWithInvalidInputReturnsBadRequest() throws IOException {
         completeUploadHandler.handleRequest(completeUploadRequestWithoutBody(), outputStream, context);
-        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
 
@@ -87,7 +88,7 @@ public class CompleteUploadHandlerTest {
                 .thenThrow(AmazonS3Exception.class);
 
         completeUploadHandler.handleRequest(completeUploadRequestWithBody(), outputStream, context);
-        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
 
         assertNotNull(response);
         assertEquals(SC_NOT_FOUND, response.getStatusCode());

@@ -18,7 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static nva.commons.core.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
@@ -58,7 +58,8 @@ public class AbortMultipartUploadHandlerTest {
     public void canAbortMultipartUpload() throws IOException {
         abortMultipartUploadHandler.handleRequest(abortMultipartUploadRequestWithBody(), outputStream, context);
 
-        GatewayResponse<SimpleMessageResponse> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<SimpleMessageResponse> response = GatewayResponse.fromOutputStream(outputStream,
+                                                                                           SimpleMessageResponse.class);
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -68,7 +69,7 @@ public class AbortMultipartUploadHandlerTest {
     public void abortMultipartUploadWithInvalidInputReturnsBadRequest() throws IOException {
         abortMultipartUploadHandler.handleRequest(abortMultipartUploadRequestWithoutBody(), outputStream, context);
 
-        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
 
@@ -77,7 +78,7 @@ public class AbortMultipartUploadHandlerTest {
         doThrow(AmazonS3Exception.class).when(s3client).abortMultipartUpload(Mockito.any());
         abortMultipartUploadHandler.handleRequest(abortMultipartUploadRequestWithBody(), outputStream, context);
 
-        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
 
         assertNotNull(response);
         assertEquals(SC_NOT_FOUND, response.getStatusCode());

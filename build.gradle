@@ -29,7 +29,7 @@ subprojects {
     targetCompatibility = JavaVersion.VERSION_11 // bytecode target version
 
     ext {
-        nvaVersion = '1.16.30'
+        nvaVersion = '1.25.2'
     }
 
     dependencies {

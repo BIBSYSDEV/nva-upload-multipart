@@ -1,7 +1,7 @@
 package no.unit.nva.fileupload;
 
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static no.unit.nva.fileupload.CreateUploadHandler.CONTENT_DISPOSITION_TEMPLATE;
-import static nva.commons.core.JsonUtils.dtoObjectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -31,7 +31,6 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
-import nva.commons.core.JsonUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.zalando.problem.Problem;
@@ -57,7 +56,7 @@ public class CreateUploadHandlerTest {
     private ByteArrayOutputStream outputStream;
     private Context context;
     private AmazonS3Client s3client;
-    private ObjectMapper objectMapper = dtoObjectMapper;
+    private final ObjectMapper objectMapper = dtoObjectMapper;
 
     /**
      * Setup test env.
@@ -81,7 +80,8 @@ public class CreateUploadHandlerTest {
         createUploadHandler.handleRequest(
             createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
 
-        GatewayResponse<CreateUploadResponseBody> actual = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<CreateUploadResponseBody> actual =
+            GatewayResponse.fromOutputStream(outputStream, CreateUploadResponseBody.class);
         var actualBody = actual.getBodyObject(CreateUploadResponseBody.class);
         var expectedBody = new CreateUploadResponseBody(SAMPLE_UPLOAD_ID, getGeneratedKey(actual));
         assertThat(actualBody, is(equalTo(expectedBody)));
@@ -91,7 +91,7 @@ public class CreateUploadHandlerTest {
     @Test
     public void createUploadWithInvalidInputReturnBadRequest() throws Exception {
         createUploadHandler.handleRequest(createUploadRequestWithoutBody(), outputStream, context);
-        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
 
@@ -101,7 +101,7 @@ public class CreateUploadHandlerTest {
             .thenThrow(SdkClientException.class);
         createUploadHandler.handleRequest(
             createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
-        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
 
         assertNotNull(response);
         assertEquals(SC_INTERNAL_SERVER_ERROR, response.getStatusCode());
@@ -114,7 +114,7 @@ public class CreateUploadHandlerTest {
             .thenThrow(RuntimeException.class);
         createUploadHandler.handleRequest(
             createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
-        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
 
         assertNotNull(response);
         assertEquals(SC_INTERNAL_SERVER_ERROR, response.getStatusCode());
@@ -125,7 +125,8 @@ public class CreateUploadHandlerTest {
     public void setCreateUploadHandlerWithMissingFileParametersReturnsBadRequest() throws IOException {
         createUploadHandler.handleRequest(
             createUploadRequestWithBody(createUploadRequestBodyNoFilename()), outputStream, context);
-        GatewayResponse<CreateUploadResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<CreateUploadResponseBody> response =
+            GatewayResponse.fromOutputStream(outputStream, CreateUploadResponseBody.class);
 
         assertNotNull(response);
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
