@@ -1,5 +1,5 @@
 def problemVersion = '0.27.1'
-def jerseyVersion = '2.36'
+def jerseyVersion = '3.0.6'
 
 dependencies {
     api group: 'com.github.bibsysdev', name: 'core', version: nvaVersion
