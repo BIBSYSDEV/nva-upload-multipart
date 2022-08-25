@@ -1,6 +1,6 @@
 package no.unit.nva.fileupload;
 
-import static nva.commons.core.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
@@ -62,7 +62,8 @@ public class PrepareUploadPartHandlerTest {
         when(s3client.generatePresignedUrl(Mockito.any(GeneratePresignedUrlRequest.class))).thenReturn(dummyUrl);
 
         prepareUploadPartHandler.handleRequest(prepareUploadPartRequestWithBody(), outputStream, context);
-        GatewayResponse<PrepareUploadPartResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<PrepareUploadPartResponseBody> response =
+            GatewayResponse.fromOutputStream(outputStream, PrepareUploadPartResponseBody.class);
 
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
@@ -74,7 +75,7 @@ public class PrepareUploadPartHandlerTest {
     @Test
     public void prepareUploadPartWithInvalidInputReturnsBadRequest() throws IOException {
         prepareUploadPartHandler.handleRequest(prepareUploadPartRequestWithoutBody(), outputStream, context);
-        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
 
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
@@ -85,7 +86,7 @@ public class PrepareUploadPartHandlerTest {
                 .thenThrow(AmazonS3Exception.class);
 
         prepareUploadPartHandler.handleRequest(prepareUploadPartRequestWithBody(), outputStream, context);
-        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
 
         assertNotNull(response);
         assertEquals(SC_NOT_FOUND, response.getStatusCode());

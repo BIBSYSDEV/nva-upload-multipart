@@ -1,7 +1,7 @@
 package no.unit.nva.fileupload;
 
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
-import static nva.commons.core.JsonUtils.dtoObjectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
@@ -44,7 +44,7 @@ public class ListPartsHandlerTest {
     private ByteArrayOutputStream outputStream;
     private Context context;
     private AmazonS3Client s3client;
-    private ObjectMapper objectMapper = dtoObjectMapper;
+    private final ObjectMapper objectMapper = dtoObjectMapper;
 
     /**
      * Setup test env.
@@ -64,7 +64,8 @@ public class ListPartsHandlerTest {
     public void canListParts() throws IOException {
         when(s3client.listParts(any(ListPartsRequest.class))).thenReturn(listPartsResponse());
         listPartsHandler.handleRequest(listPartsRequestWithBody(), outputStream, context);
-        GatewayResponse<ListPartsResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<ListPartsResponseBody> response =
+            GatewayResponse.fromOutputStream(outputStream, ListPartsResponseBody.class);
 
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
@@ -78,7 +79,8 @@ public class ListPartsHandlerTest {
         PartListing partListing = truncatedPartListing();
         when(s3client.listParts(any(ListPartsRequest.class))).thenReturn(partListing);
         listPartsHandler.handleRequest(listPartsRequestWithBody(), outputStream, context);
-        GatewayResponse<ListPartsResponseBody> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<ListPartsResponseBody> response =
+            GatewayResponse.fromOutputStream(outputStream, ListPartsResponseBody.class);
 
         assertNotNull(response);
         assertEquals(SC_OK, response.getStatusCode());
@@ -90,7 +92,7 @@ public class ListPartsHandlerTest {
     @Test
     public void listPartsWithInvalidInputReturnsBadRequest() throws IOException {
         listPartsHandler.handleRequest(listPartsRequestWithoutBody(), outputStream, context);
-        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
 
         assertEquals(SC_BAD_REQUEST, response.getStatusCode());
     }
@@ -103,7 +105,7 @@ public class ListPartsHandlerTest {
     public void listPartsWithS3ErrorReturnsNotFound() throws IOException {
         when(s3client.listParts(any(ListPartsRequest.class))).thenThrow(AmazonS3Exception.class);
         listPartsHandler.handleRequest(listPartsRequestWithBody(), outputStream, context);
-        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream);
+        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
 
         assertNotNull(response);
         assertEquals(SC_NOT_FOUND, response.getStatusCode());

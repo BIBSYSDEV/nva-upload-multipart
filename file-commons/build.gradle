@@ -1,14 +1,17 @@
-def problemVersion = '0.23.0'
-def jerseyVersion = '2.22.2'
+def problemVersion = '0.27.1'
+def jerseyVersion = '3.0.6'
 
 dependencies {
     api group: 'com.github.bibsysdev', name: 'core', version: nvaVersion
     api group: 'com.github.bibsysdev', name: 'apigateway', version: nvaVersion
-    api group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.0'
-    api group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.715'
+    api group: 'com.github.bibsysdev', name: 'json', version: nvaVersion
+    api group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.1'
+    api group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.288'
     api group: 'org.glassfish.jersey.core', name: 'jersey-common', version: jerseyVersion
     api group: 'org.zalando', name: 'problem', version: problemVersion
     api group: 'org.zalando', name: 'jackson-datatype-problem', version: problemVersion
+    api group: 'org.slf4j', name: 'slf4j-api', version: '1.8.0-beta4'
+    api group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.17.2'
 }
 
 test{
