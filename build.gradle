@@ -29,13 +29,13 @@ subprojects {
     targetCompatibility = JavaVersion.VERSION_11 // bytecode target version
 
     ext {
-        nvaVersion = '1.25.2'
+        nvaVersion = '1.25.11'
     }
 
     dependencies {
         testImplementation group: 'com.github.bibsysdev', name: 'nvatestutils', version: nvaVersion
-        testImplementation group: 'junit', name: 'junit', version: '4.12'
-        testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.2.4'
+        testImplementation group: 'junit', name: 'junit', version: '4.13.2'
+        testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.5.1'
     }
 
     test {
