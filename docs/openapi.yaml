@@ -1,6 +1,7 @@
 openapi: 3.0.0
 info:
   title: NVA S3 Multipart Upload
+  description: API for uploading files
   version: '1.0'
 paths:
   /create:
@@ -13,7 +14,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/createUploadRequestBody'
+              $ref: '#/components/schemas/CreateUploadRequestBody'
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateUploadFunction.Arn}/invocations
@@ -26,19 +27,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/createUploadResponseBody'
+                $ref: '#/components/schemas/CreateUploadResponseBody'
         '400':
           description: 'Bad request'
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/Problem'
         '401':
           description: 'Unauthorized'
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/Problem'
   /listparts:
     post:
       summary: List the parts of a file that have already been uploaded.
@@ -49,7 +50,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/listPartsRequestBody'
+              $ref: '#/components/schemas/ListPartsRequestBody'
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ListPartsUploadFunction.Arn}/invocations
@@ -62,19 +63,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/listPartsResponseBody'
+                $ref: '#/components/schemas/ListPartsResponseBody'
         '400':
           description: 'Bad request'
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/Problem'
         '404':
           description: 'The specified upload does not exist'
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/Problem'
   /prepare:
     post:
       summary:  Generates a presigned URL to upload a single part
@@ -85,7 +86,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/prepareUploadPartRequestBody'
+              $ref: '#/components/schemas/PrepareUploadPartRequestBody'
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PrepareUploadPartFunction.Arn}/invocations
@@ -98,19 +99,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/prepareUploadPartResponseBody'
+                $ref: '#/components/schemas/PrepareUploadPartResponseBody'
         '400':
           description: 'Bad request'
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/Problem'
         '404':
           description: 'The specified upload does not exist'
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/Problem'
   /abort:
     post:
       summary: Aborts a Multipart upload, and deletes all parts that have been uploaded so far.
@@ -121,7 +122,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/abortUploadRequestBody'
+              $ref: '#/components/schemas/AbortUploadRequestBody'
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AbortUploadFunction.Arn}/invocations
@@ -134,19 +135,19 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/Message'
         '400':
           description: 'Bad request'
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/Problem'
         '404':
           description: 'The specified upload does not exist'
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/Problem'
   /complete:
     post:
       summary: Completes a Multipart upload, combining all parts into a single object in the S3 bucket
@@ -157,7 +158,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/completeUploadRequestBody'
+              $ref: '#/components/schemas/CompleteUploadRequestBody'
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CompleteUploadFunction.Arn}/invocations
@@ -170,19 +171,19 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/LocationResponse'
         '400':
           description: 'Bad request'
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/Problem'
         '404':
           description: 'The specified upload does not exist'
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/Problem'
 
 components:
   securitySchemes:
@@ -196,8 +197,8 @@ components:
         providerARNs:
           - !Ref CognitoAuthorizerArn
   schemas:
-    createUploadRequestBody:
-      title: create multipart upload
+    CreateUploadRequestBody:
+      description: Request body containing details about file to be uploaded
       type: object
       properties:
         filename:
@@ -219,8 +220,8 @@ components:
         - filename
         - size
 
-    listPartsRequestBody:
-      title: List parts already uploaded
+    ListPartsRequestBody:
+      description: List parts already uploaded
       type: object
       properties:
         uploadId:
@@ -233,8 +234,8 @@ components:
         - uploadId
         - key
 
-    prepareUploadPartRequestBody:
-      title: List parts already uploaded
+    PrepareUploadPartRequestBody:
+      description: Request body containing details about parts to be uploaded
       type: object
       properties:
         uploadId:
@@ -253,8 +254,8 @@ components:
         - uploadId
         - key
 
-    abortUploadRequestBody:
-      title: Abort (multipart) upload
+    AbortUploadRequestBody:
+      description: Request body containing which file to abort uploading
       type: object
       properties:
         uploadId:
@@ -267,8 +268,8 @@ components:
         - uploadId
         - key
 
-    completeUploadRequestBody:
-      title: Complete and finalize (multipart) upload
+    CompleteUploadRequestBody:
+      description: Request body containg the details of the file to be uploaded
       type: object
       properties:
         uploadId:
@@ -294,8 +295,8 @@ components:
         - key
         - parts
 
-    createUploadResponseBody:
-      title: create multipart upload
+    CreateUploadResponseBody:
+      description: Response for successfully uploaded file
       type: object
       properties:
         uploadId:
@@ -305,8 +306,8 @@ components:
           type: string
           description: Key to reference uploaded resource in S3 (UUID)
 
-    listPartsResponseBody:
-      title: create multipart upload
+    ListPartsResponseBody:
+      description: Object containing details about parts that have been uploaded
       type: object
       properties:
         PartNumber:
@@ -319,10 +320,33 @@ components:
           type: string
           description: The ETag of the part, used to identify it when completing the multipart upload and combining all parts into a single file.
 
-    prepareUploadPartResponseBody:
-      title: Generates a signed URL to upload a single part
+    PrepareUploadPartResponseBody:
+      description: Response with url
       type: object
       properties:
         url:
           type: string
           description: The presigned URL to upload a part
+
+    Problem:
+      type: object
+      properties:
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+
+    LocationResponse:
+      description: A Response containing the location to find a file
+      type: object
+      properties:
+        location:
+          type: string
