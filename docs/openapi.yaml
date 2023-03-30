@@ -189,7 +189,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
 
-  /{uploadId}/{partNumber}:
+  /multipart/{uploadId}/{partNumber}:
     get:
       summary: Gets signed part url for an upload and partnumber for a filename
       security:

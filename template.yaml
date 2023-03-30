@@ -103,7 +103,7 @@ Resources:
           GetSignedPart:
             Type: Api
             Properties:
-              Path: /{uploadId}/{partNumber}
+              Path: /multipart/{uploadId}/{partNumber}
               Method: get
               RestApiId: !Ref UploadApi
 
