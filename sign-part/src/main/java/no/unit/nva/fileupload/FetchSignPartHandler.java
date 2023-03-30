@@ -11,13 +11,12 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
+@SuppressWarnings({"PMD.UnusedPrivateField", "PMD.BeanMembersShouldSerialize", "PMD.SingularField"})
 public class FetchSignPartHandler extends ApiGatewayHandler<Void, SignedPartResponseBody> {
 
     private final Environment environment;
     private final AmazonS3 s3Client;
     private final String bucketName;
-
-
 
     @JacocoGenerated
     public FetchSignPartHandler() {
