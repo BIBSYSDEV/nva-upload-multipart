@@ -54,7 +54,7 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
-          ALLOWED_ORIGIN:  '*'
+          ALLOWED_ORIGIN: '*'
       Handler: no.unit.nva.fileupload.CreateUploadHandler::handleRequest
       Runtime: java11
       MemorySize: 1408
@@ -74,7 +74,7 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
-          ALLOWED_ORIGIN:  '*'
+          ALLOWED_ORIGIN: '*'
       Handler: no.unit.nva.fileupload.ListPartsHandler::handleRequest
       Runtime: java11
       MemorySize: 1408
@@ -87,6 +87,26 @@ Resources:
             Method: post
             RestApiId: !Ref UploadApi
 
+    FetchSignPartFunction:
+      Type: AWS::Serverless::Function
+      Properties:
+        CodeUri: sign-part
+        Environment:
+          Variables:
+            S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
+            ALLOWED_ORIGIN: '*'
+        Handler: no.unit.nva.fileupload.FetchSignPartHandler::handleRequest
+        Runtime: java11
+        MemorySize: 1408
+        Role: !GetAtt UploadExecutionRole.Arn
+        Events:
+          GetSignedPart:
+            Type: Api
+            Properties:
+              Path: /{uploadId}/{partNumber}
+              Method: get
+              RestApiId: !Ref UploadApi
+
   PrepareUploadPartFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -94,7 +114,7 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
-          ALLOWED_ORIGIN:  '*'
+          ALLOWED_ORIGIN: '*'
       Handler: no.unit.nva.fileupload.PrepareUploadPartHandler::handleRequest
       Runtime: java11
       MemorySize: 1408
@@ -114,7 +134,7 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
-          ALLOWED_ORIGIN:  '*'
+          ALLOWED_ORIGIN: '*'
       Handler: no.unit.nva.fileupload.AbortMultipartUploadHandler::handleRequest
       Runtime: java11
       MemorySize: 1408
@@ -134,7 +154,7 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
-          ALLOWED_ORIGIN:  '*'
+          ALLOWED_ORIGIN: '*'
       Handler: no.unit.nva.fileupload.CompleteUploadHandler::handleRequest
       Runtime: java11
       MemorySize: 1408
@@ -163,8 +183,8 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service: [lambda.amazonaws.com]
-            Action: ['sts:AssumeRole']
+              Service: [ lambda.amazonaws.com ]
+            Action: [ 'sts:AssumeRole' ]
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:

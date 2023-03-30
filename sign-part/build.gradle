@@ -1,0 +1,8 @@
+dependencies {
+    implementation project(':file-commons')
+}
+
+test {
+    environment "ALLOWED_ORIGIN", "*"
+    environment "S3_UPLOAD_BUCKET", "S3_UPLOAD_BUCKET"
+}

@@ -3,6 +3,10 @@ info:
   title: NVA S3 Multipart Upload
   description: API for uploading files
   version: '1.0'
+x-amazon-apigateway-request-validators:
+  params-only:
+    validateRequestBody: false
+    validateRequestParameters: true
 paths:
   /create:
     post:
@@ -185,6 +189,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
 
+  /{uploadId}/{partNumber}:
+    get:
+      summary: Gets signed part url for an upload and partnumber for a filename
+      security:
+        - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend', 'aws.cognito.signin.user.admin']
+      parameters:
+        - in: query
+          name: filename
+          required: true
+          description: filename or object key of the object in the s3 bucket
+      x-amazon-apigateway-request-validator : params-only
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FetchSignPartFunction.Arn}:live/invocations
+        responses: {}
+        httpMethod: GET
+        type: AWS_PROXY
+      responses:
+        '200':
+          description: AWS signed part url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignedPartResponseBody'
+        '400':
+          description: 'Bad request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: 'The specified upload does not exist'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
 components:
   securitySchemes:
     CognitoUserPool:
@@ -327,6 +368,21 @@ components:
         url:
           type: string
           description: The presigned URL to upload a part
+
+    SignedPartResponseBody:
+      description: Response with url to signed part
+      type: object
+      properties:
+        url:
+          type: string
+          description: The signed URL to upload a part
+        header:
+          type: object
+          properties:
+            key:
+              type: string
+            value:
+              type: string
 
     Problem:
       type: object

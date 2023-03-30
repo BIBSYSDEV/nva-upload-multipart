@@ -5,3 +5,5 @@ include 'prepare-upload-part'
 include 'list-parts'
 include 'abort-multipart-upload'
 include 'complete-upload'
+include 'sign-part'
+
