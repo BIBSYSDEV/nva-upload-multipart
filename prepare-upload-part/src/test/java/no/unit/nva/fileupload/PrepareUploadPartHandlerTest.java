@@ -31,7 +31,6 @@ public class PrepareUploadPartHandlerTest {
 
     public static final String SAMPLE_KEY = "key";
     public static final String SAMPLE_UPLOADID = "uploadId";
-    public static final String SAMPLE_BODY = "body";
     public static final String SAMPLE_PART_NUMBER = "1";
     public static final String TEST_BUCKET_NAME = "bucketName";
     public static final String WILDCARD = "*";
@@ -106,6 +105,6 @@ public class PrepareUploadPartHandlerTest {
     }
 
     private PrepareUploadPartRequestBody prepareUploadPartRequestBody() {
-        return new PrepareUploadPartRequestBody(SAMPLE_UPLOADID, SAMPLE_KEY, SAMPLE_BODY, SAMPLE_PART_NUMBER);
+        return new PrepareUploadPartRequestBody(SAMPLE_UPLOADID, SAMPLE_KEY, SAMPLE_PART_NUMBER);
     }
 }
