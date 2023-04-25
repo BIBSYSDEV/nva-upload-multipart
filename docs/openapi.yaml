@@ -135,7 +135,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Message'
+                $ref: '#/components/schemas/SimpleMessage'
         '400':
           description: 'Bad request'
           content:
@@ -355,11 +355,15 @@ components:
           type: string
           description: A URI describing the error and mitigations, in generic cases, this is about:blank
 
-    Message:
+    SimpleMessage:
       type: object
+      description: NVA file upload message
+      required:
+        - message
       properties:
         message:
           type: string
+          description: Human-readable message
 
     LocationResponse:
       description: A Response containing the location to find a file
