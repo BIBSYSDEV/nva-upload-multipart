@@ -16,6 +16,10 @@ Parameters:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: Reference to Cognito UserPool for the stage
     Default: CognitoAuthorizerArn
+  ExternalCognitoAuthorizerArn:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: Reference to ARN of ExternalUsers UserPool
+    Default: ExternalCognitoAuthorizerArn
   CustomDomain:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: Custom API to connect this lambda to
