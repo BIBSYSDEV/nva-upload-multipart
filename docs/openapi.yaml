@@ -7,8 +7,15 @@ paths:
   /create:
     post:
       summary: Create (multipart) upload
+      tags:
+        - external
       security:
-        - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend', 'aws.cognito.signin.user.admin']
+        - CognitoUserPool: [
+          'https://api.nva.unit.no/scopes/backend',
+          'https://api.nva.unit.no/scopes/frontend',
+          'aws.cognito.signin.user.admin'
+          'https://api.nva.unit.no/scopes/third-party/file-upload'
+        ]
       requestBody:
         required: true
         content:
@@ -43,8 +50,15 @@ paths:
   /listparts:
     post:
       summary: List the parts of a file that have already been uploaded.
+      tags:
+        - external
       security:
-        - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend', 'aws.cognito.signin.user.admin']
+        - CognitoUserPool: [
+          'https://api.nva.unit.no/scopes/backend',
+          'https://api.nva.unit.no/scopes/frontend',
+          'aws.cognito.signin.user.admin'
+          'https://api.nva.unit.no/scopes/third-party/file-upload'
+        ]
       requestBody:
         required: true
         content:
@@ -79,8 +93,15 @@ paths:
   /prepare:
     post:
       summary:  Generates a presigned URL to upload a single part
+      tags:
+        - external
       security:
-        - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend', 'aws.cognito.signin.user.admin']
+        - CognitoUserPool: [
+          'https://api.nva.unit.no/scopes/backend',
+          'https://api.nva.unit.no/scopes/frontend',
+          'aws.cognito.signin.user.admin'
+          'https://api.nva.unit.no/scopes/third-party/file-upload'
+        ]
       requestBody:
         required: true
         content:
@@ -115,8 +136,15 @@ paths:
   /abort:
     post:
       summary: Aborts a Multipart upload, and deletes all parts that have been uploaded so far.
+      tags:
+        - external
       security:
-        - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend', 'aws.cognito.signin.user.admin']
+        - CognitoUserPool: [
+          'https://api.nva.unit.no/scopes/backend',
+          'https://api.nva.unit.no/scopes/frontend',
+          'aws.cognito.signin.user.admin'
+          'https://api.nva.unit.no/scopes/third-party/file-upload'
+        ]
       requestBody:
         required: true
         content:
@@ -151,8 +179,15 @@ paths:
   /complete:
     post:
       summary: Completes a Multipart upload, combining all parts into a single object in the S3 bucket
+      tags:
+        - external
       security:
-        - CognitoUserPool: ['https://api.nva.unit.no/scopes/backend', 'https://api.nva.unit.no/scopes/frontend', 'aws.cognito.signin.user.admin']
+        - CognitoUserPool: [
+          'https://api.nva.unit.no/scopes/backend',
+          'https://api.nva.unit.no/scopes/frontend',
+          'aws.cognito.signin.user.admin'
+          'https://api.nva.unit.no/scopes/third-party/file-upload'
+        ]
       requestBody:
         required: true
         content:
@@ -196,6 +231,7 @@ components:
         type: cognito_user_pools
         providerARNs:
           - Ref: CognitoAuthorizerArn
+          - Ref: ExternalCognitoAuthorizerArn
   schemas:
     CreateUploadRequestBody:
       description: Request body containing details about file to be uploaded
