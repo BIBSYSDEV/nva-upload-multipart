@@ -14,7 +14,7 @@ paths:
         - CognitoUserPool: [
           'https://api.nva.unit.no/scopes/backend',
           'https://api.nva.unit.no/scopes/frontend',
-          'aws.cognito.signin.user.admin'
+          'aws.cognito.signin.user.admin',
           'https://api.nva.unit.no/scopes/third-party/file-upload'
         ]
       requestBody:
@@ -57,7 +57,7 @@ paths:
         - CognitoUserPool: [
           'https://api.nva.unit.no/scopes/backend',
           'https://api.nva.unit.no/scopes/frontend',
-          'aws.cognito.signin.user.admin'
+          'aws.cognito.signin.user.admin',
           'https://api.nva.unit.no/scopes/third-party/file-upload'
         ]
       requestBody:
@@ -100,7 +100,7 @@ paths:
         - CognitoUserPool: [
           'https://api.nva.unit.no/scopes/backend',
           'https://api.nva.unit.no/scopes/frontend',
-          'aws.cognito.signin.user.admin'
+          'aws.cognito.signin.user.admin',
           'https://api.nva.unit.no/scopes/third-party/file-upload'
         ]
       requestBody:
@@ -143,7 +143,7 @@ paths:
         - CognitoUserPool: [
           'https://api.nva.unit.no/scopes/backend',
           'https://api.nva.unit.no/scopes/frontend',
-          'aws.cognito.signin.user.admin'
+          'aws.cognito.signin.user.admin',
           'https://api.nva.unit.no/scopes/third-party/file-upload'
         ]
       requestBody:
@@ -186,7 +186,7 @@ paths:
         - CognitoUserPool: [
           'https://api.nva.unit.no/scopes/backend',
           'https://api.nva.unit.no/scopes/frontend',
-          'aws.cognito.signin.user.admin'
+          'aws.cognito.signin.user.admin',
           'https://api.nva.unit.no/scopes/third-party/file-upload'
         ]
       requestBody:
