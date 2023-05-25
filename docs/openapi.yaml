@@ -295,7 +295,7 @@ components:
           example: f335ab02-35b3-4fda-9204-cd999e166ce0
         body:
           type: string
-          description: This parts content. Its not used, but needs to be present. Use "{}"
+          description: This parts content. Its provided by Uppy, but not used by the API.
           example: {}
         number:
           type: integer
@@ -304,7 +304,6 @@ components:
       required:
         - uploadId
         - key
-        - body
         - number
 
     AbortUploadRequestBody:
