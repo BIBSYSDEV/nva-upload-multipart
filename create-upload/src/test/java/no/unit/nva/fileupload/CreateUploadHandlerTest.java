@@ -5,11 +5,10 @@ import static no.unit.nva.fileupload.CreateUploadHandler.CONTENT_DISPOSITION_TEM
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -31,8 +30,8 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.zalando.problem.Problem;
 
 public class CreateUploadHandlerTest {
@@ -61,8 +60,8 @@ public class CreateUploadHandlerTest {
     /**
      * Setup test env.
      */
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         Environment environment = mock(Environment.class);
         when(environment.readEnv(ApiGatewayHandler.ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
@@ -73,7 +72,7 @@ public class CreateUploadHandlerTest {
     }
 
     @Test
-    public void canCreateUpload() throws Exception {
+    void canCreateUpload() throws Exception {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
             .thenReturn(uploadResult());
 
@@ -89,109 +88,107 @@ public class CreateUploadHandlerTest {
     }
 
     @Test
-    public void createUploadWithInvalidInputReturnBadRequest() throws Exception {
+    void createUploadWithInvalidInputReturnBadRequest() throws Exception {
         createUploadHandler.handleRequest(createUploadRequestWithoutBody(), outputStream, context);
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
+        assertThat(response.getStatusCode(), is(equalTo(SC_BAD_REQUEST)));
     }
 
     @Test
-    public void createUploadWithS3ErrorReturnsNotFound() throws IOException {
+    void createUploadWithS3ErrorReturnsNotFound() throws IOException {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
             .thenThrow(SdkClientException.class);
         createUploadHandler.handleRequest(
             createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
-
-        assertNotNull(response);
-        assertEquals(SC_INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertNotNull(response.getBody());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(equalTo(SC_INTERNAL_SERVER_ERROR)));
+        assertThat(response.getBody(), is(notNullValue()));
     }
 
     @Test
-    public void createUploadWithRuntimeErrorReturnsServerError() throws IOException {
+    void createUploadWithRuntimeErrorReturnsServerError() throws IOException {
         when(s3client.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
             .thenThrow(RuntimeException.class);
         createUploadHandler.handleRequest(
             createUploadRequestWithBody(createUploadRequestBody()), outputStream, context);
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
-
-        assertNotNull(response);
-        assertEquals(SC_INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertNotNull(response.getBody());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(equalTo(SC_INTERNAL_SERVER_ERROR)));
+        assertThat(response.getBody(), is(notNullValue()));
     }
 
     @Test
-    public void setCreateUploadHandlerWithMissingFileParametersReturnsBadRequest() throws IOException {
+    void setCreateUploadHandlerWithMissingFileParametersReturnsBadRequest() throws IOException {
         createUploadHandler.handleRequest(
             createUploadRequestWithBody(createUploadRequestBodyNoFilename()), outputStream, context);
         GatewayResponse<CreateUploadResponseBody> response =
             GatewayResponse.fromOutputStream(outputStream, CreateUploadResponseBody.class);
 
-        assertNotNull(response);
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(equalTo(SC_BAD_REQUEST)));
+        assertThat(response.getBody(), is(notNullValue()));
     }
 
     @Test
-    public void createUploadRequestBodyReturnsValidContentDispositionWhenInputIsValid() {
+    void createUploadRequestBodyReturnsValidContentDispositionWhenInputIsValid() {
         CreateUploadRequestBody requestBody =
             new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         String actual = createUploadHandler.toObjectMetadata(requestBody).getContentDisposition();
         String expected = generateContentDisposition(SAMPLE_FILENAME);
-        assertEquals(expected, actual);
+        assertThat(actual, is(equalTo(expected)));
     }
 
     @Test
-    public void createUploadRequestBodyReturnsValidContentDispositionWhenFilenameIsNull() {
+    void createUploadRequestBodyReturnsValidContentDispositionWhenFilenameIsNull() {
         CreateUploadRequestBody requestBody =
             new CreateUploadRequestBody(null, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         String actual = createUploadHandler.toObjectMetadata(requestBody).getContentDisposition();
         String expected = generateContentDisposition(NULL_STRING);
-        assertEquals(expected, actual);
+        assertThat(actual, is(equalTo(expected)));
     }
 
     @Test
-    public void createUploadRequestBodyReturnsValidContentDispositionWhenFilenameIsEmptyString() {
+    void createUploadRequestBodyReturnsValidContentDispositionWhenFilenameIsEmptyString() {
         CreateUploadRequestBody requestBody =
             new CreateUploadRequestBody(EMPTY_STRING, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         String actual = createUploadHandler.toObjectMetadata(requestBody).getContentDisposition();
         String expected = generateContentDisposition(EMPTY_STRING);
-        assertEquals(expected, actual);
+        assertThat(actual, is(equalTo(expected)));
     }
 
     @Test
-    public void createUploadRequestBodyReturnsNullContentTypeWhenMimeTypeIsNull() {
+    void createUploadRequestBodyReturnsNullContentTypeWhenMimeTypeIsNull() {
         CreateUploadRequestBody requestBody =
             new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, null);
         String actual = createUploadHandler.toObjectMetadata(requestBody).getContentType();
-        assertNull(actual);
+        assertThat(actual, is(nullValue()));
     }
 
     @Test
-    public void createUploadRequestBodyReturnsEmptyStringContentTypeWhenMimeTypeIsEmptyString() {
+    void createUploadRequestBodyReturnsEmptyStringContentTypeWhenMimeTypeIsEmptyString() {
         CreateUploadRequestBody requestBody =
             new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, EMPTY_STRING);
         String actual = createUploadHandler.toObjectMetadata(requestBody).getContentType();
-        assertEquals(EMPTY_STRING, actual);
+        assertThat(actual, is(equalTo(EMPTY_STRING)));
     }
 
     @Test
-    public void createUploadRequestBodyReturnsContentTypeWhenMimeTypeIsInvalidString() {
+    void createUploadRequestBodyReturnsContentTypeWhenMimeTypeIsInvalidString() {
         CreateUploadRequestBody requestBody =
             new CreateUploadRequestBody(SAMPLE_FILENAME, SAMPLE_SIZE_STRING, INVALID_MIME_TYPE);
         String actual = createUploadHandler.toObjectMetadata(requestBody).getContentType();
-        assertEquals(INVALID_MIME_TYPE, actual);
+        assertThat(actual, is(equalTo(INVALID_MIME_TYPE)));
     }
 
     @Test
-    public void createUploadRequestReturnsValidContentDispositionWithEscapedUnicodeWhenInputIsUnicode() {
+    void createUploadRequestReturnsValidContentDispositionWithEscapedUnicodeWhenInputIsUnicode() {
         CreateUploadRequestBody requestBody =
             new CreateUploadRequestBody(SAMPLE_UNICODE_FILENAME, SAMPLE_SIZE_STRING, SAMPLE_MIMETYPE);
         ObjectMetadata objectMetadata = createUploadHandler.toObjectMetadata(requestBody);
         String actual = objectMetadata.getContentDisposition();
         String expected = generateContentDisposition(EXPECTED_ESCAPED_FILENAME);
-        assertEquals(expected, actual);
+        assertThat(actual, is(equalTo(expected)));
     }
 
     // We get the key from the actual response because it was randomly generated

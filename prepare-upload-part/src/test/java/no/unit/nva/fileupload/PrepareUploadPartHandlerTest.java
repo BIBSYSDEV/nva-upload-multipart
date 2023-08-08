@@ -4,8 +4,10 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -22,8 +24,9 @@ import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
-import org.junit.Before;
-import org.junit.Test;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.zalando.problem.Problem;
 
@@ -45,8 +48,8 @@ public class PrepareUploadPartHandlerTest {
     /**
      * Setup test env.
      */
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         Environment environment = mock(Environment.class);
         when(environment.readEnv(ApiGatewayHandler.ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
@@ -57,7 +60,7 @@ public class PrepareUploadPartHandlerTest {
     }
 
     @Test
-    public void canPrepareUploadPart() throws IOException {
+    void canPrepareUploadPart() throws IOException {
         URL dummyUrl = new URL("http://localhost");
         when(s3client.generatePresignedUrl(Mockito.any(GeneratePresignedUrlRequest.class))).thenReturn(dummyUrl);
 
@@ -65,32 +68,31 @@ public class PrepareUploadPartHandlerTest {
         GatewayResponse<PrepareUploadPartResponseBody> response =
             GatewayResponse.fromOutputStream(outputStream, PrepareUploadPartResponseBody.class);
 
-        assertNotNull(response);
-        assertEquals(SC_OK, response.getStatusCode());
-        assertNotNull(response.getBody());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(equalTo(SC_OK)));
+        assertThat(response.getBody(), is(notNullValue()));
         PrepareUploadPartResponseBody responseBody = response.getBodyObject(PrepareUploadPartResponseBody.class);
-        assertNotNull(responseBody.getUrl());
+        assertThat(responseBody.getUrl(), is(notNullValue()));
     }
 
     @Test
-    public void prepareUploadPartWithInvalidInputReturnsBadRequest() throws IOException {
+    void prepareUploadPartWithInvalidInputReturnsBadRequest() throws IOException {
         prepareUploadPartHandler.handleRequest(prepareUploadPartRequestWithoutBody(), outputStream, context);
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
-
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
+        assertThat(response.getStatusCode(), is(equalTo(SC_BAD_REQUEST)));
     }
 
     @Test
-    public void prepareUploadPartWithS3ErrorReturnsNotFound() throws IOException {
+    void prepareUploadPartWithS3ErrorReturnsNotFound() throws IOException {
         when(s3client.generatePresignedUrl(Mockito.any(GeneratePresignedUrlRequest.class)))
                 .thenThrow(AmazonS3Exception.class);
 
         prepareUploadPartHandler.handleRequest(prepareUploadPartRequestWithBody(), outputStream, context);
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
 
-        assertNotNull(response);
-        assertEquals(SC_NOT_FOUND, response.getStatusCode());
-        assertNotNull(response.getBody());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(equalTo(SC_NOT_FOUND)));
+        assertThat(response.getBody(), is(notNullValue()));
     }
 
     private InputStream prepareUploadPartRequestWithBody() throws com.fasterxml.jackson.core.JsonProcessingException {

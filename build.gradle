@@ -30,15 +30,22 @@ subprojects {
 
     ext {
         nvaVersion = '1.25.11'
+        junit = '5.8.2'
+        mockito = '4.2.0'
+        hamcrest = '2.2'
     }
 
     dependencies {
+
+
+        testImplementation group: 'org.hamcrest', name: 'hamcrest', version: hamcrest
         testImplementation group: 'com.github.bibsysdev', name: 'nvatestutils', version: nvaVersion
-        testImplementation group: 'junit', name: 'junit', version: '4.13.2'
-        testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.5.1'
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junit
+        testImplementation group: 'org.mockito', name: 'mockito-core', version: mockito
     }
 
     test {
+        useJUnitPlatform()
         failFast = true
         finalizedBy jacocoTestReport
     }

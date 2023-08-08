@@ -4,9 +4,12 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -24,8 +27,8 @@ import no.unit.nva.fileupload.util.S3Constants;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.zalando.problem.Problem;
 
@@ -50,8 +53,8 @@ public class CompleteUploadHandlerTest {
     /**
      * Setup test env.
      */
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         Environment environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
@@ -62,71 +65,66 @@ public class CompleteUploadHandlerTest {
     }
 
     @Test
-    public void canCompleteUpload() throws IOException {
+    void canCompleteUpload() throws IOException {
         when(s3client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
                 .thenReturn(new CompleteMultipartUploadResult());
 
         completeUploadHandler.handleRequest(completeUploadRequestWithBody(), outputStream, context);
         GatewayResponse<CompleteUploadResponseBody> response =
             GatewayResponse.fromOutputStream(outputStream, CompleteUploadResponseBody.class);
-
-        assertNotNull(response);
-        assertEquals(SC_OK, response.getStatusCode());
-        assertNotNull(response.getBody());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(equalTo(SC_OK)));
+        assertThat(response.getBody(), is(notNullValue()));
     }
 
     @Test
-    public void completeUploadWithInvalidInputReturnsBadRequest() throws IOException {
+    void completeUploadWithInvalidInputReturnsBadRequest() throws IOException {
         completeUploadHandler.handleRequest(completeUploadRequestWithoutBody(), outputStream, context);
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
+        assertThat(response.getStatusCode(), is(equalTo(SC_BAD_REQUEST)));
     }
 
     @Test
-    public void completeUploadWithS3ErrorReturnsNotFound() throws IOException {
+    void completeUploadWithS3ErrorReturnsNotFound() throws IOException {
         when(s3client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
                 .thenThrow(AmazonS3Exception.class);
 
         completeUploadHandler.handleRequest(completeUploadRequestWithBody(), outputStream, context);
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
 
-        assertNotNull(response);
-        assertEquals(SC_NOT_FOUND, response.getStatusCode());
-        assertNotNull(response.getBody());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(equalTo(SC_NOT_FOUND)));
+        assertThat(response.getBody(), is(notNullValue()));
     }
 
     @Test
-    public void canCreateRequestWithEmptyElement() throws IOException {
+    void canCreateRequestWithEmptyElement() throws IOException {
         InputStream stream =
                 CompleteUploadHandlerTest.class.getResourceAsStream(COMPLETE_UPLOAD_REQUEST_WITH_EMPTY_ELEMENT_JSON);
         final CompleteUploadRequestBody completeUploadRequestBody = dtoObjectMapper
                 .readValue(new InputStreamReader(stream), CompleteUploadRequestBody.class);
-        assertNotNull(completeUploadRequestBody);
+        assertThat(completeUploadRequestBody, is(notNullValue()));
 
         final CompleteMultipartUploadRequest completeMultipartUploadRequest =
                 completeUploadHandler.toCompleteMultipartUploadRequest(completeUploadRequestBody);
-        assertNotNull(completeMultipartUploadRequest);
-
-        assertNotEquals(completeMultipartUploadRequest.getPartETags().size(),
-                completeUploadRequestBody.getParts().size());
+        assertThat(completeMultipartUploadRequest, is(notNullValue()));
+        assertThat(completeUploadRequestBody.getParts(), not(hasSize(completeMultipartUploadRequest.getPartETags().size())));
     }
 
     @Test
-    public void canCreateRequestWithOnePart() throws IOException {
+    void canCreateRequestWithOnePart() throws IOException {
         InputStream stream =
                 CompleteUploadHandlerTest.class.getResourceAsStream(COMPLETE_UPLOAD_REQUEST_WITH_ONE_PART_JSON);
         final CompleteUploadRequestBody completeUploadRequestBody = dtoObjectMapper
                 .readValue(new InputStreamReader(stream), CompleteUploadRequestBody.class);
-        assertNotNull(completeUploadRequestBody);
-        assertNotNull(completeUploadRequestBody.getParts());
-        assertEquals(EXPECTED_ONE_PART, completeUploadRequestBody.getParts().size());
+        assertThat(completeUploadRequestBody, is(notNullValue()));
+        assertThat(completeUploadRequestBody.getParts(), is(notNullValue()));
+        assertThat(completeUploadRequestBody.getParts(), hasSize(EXPECTED_ONE_PART));
 
         final CompleteMultipartUploadRequest completeMultipartUploadRequest =
                 completeUploadHandler.toCompleteMultipartUploadRequest(completeUploadRequestBody);
-        assertNotNull(completeMultipartUploadRequest);
-
-        assertEquals(completeMultipartUploadRequest.getPartETags().size(),
-                completeUploadRequestBody.getParts().size());
+        assertThat(completeMultipartUploadRequest, is(notNullValue()));
+        assertThat(completeUploadRequestBody.getParts(), hasSize(completeMultipartUploadRequest.getPartETags().size()));
     }
 
     private InputStream completeUploadRequestWithBody() throws com.fasterxml.jackson.core.JsonProcessingException {
