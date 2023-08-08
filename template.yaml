@@ -60,7 +60,7 @@ Resources:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.fileupload.CreateUploadHandler::handleRequest
-      Runtime: java11
+      Runtime: java17
       MemorySize: 1408
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
@@ -80,7 +80,7 @@ Resources:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.fileupload.ListPartsHandler::handleRequest
-      Runtime: java11
+      Runtime: java17
       MemorySize: 1408
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
@@ -100,7 +100,7 @@ Resources:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.fileupload.PrepareUploadPartHandler::handleRequest
-      Runtime: java11
+      Runtime: java17
       MemorySize: 1408
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
@@ -120,7 +120,7 @@ Resources:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.fileupload.AbortMultipartUploadHandler::handleRequest
-      Runtime: java11
+      Runtime: java17
       MemorySize: 1408
       Role: !GetAtt UploadExecutionRole.Arn
       Events:
@@ -140,7 +140,7 @@ Resources:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
           ALLOWED_ORIGIN:  '*'
       Handler: no.unit.nva.fileupload.CompleteUploadHandler::handleRequest
-      Runtime: java11
+      Runtime: java17
       MemorySize: 1408
       Role: !GetAtt UploadExecutionRole.Arn
       Events:

@@ -1,3 +1,14 @@
 dependencies {
     implementation project(':file-commons')
+
+    implementation libs.nva.apigateway
+    implementation libs.nva.core
+
+    implementation libs.aws.sdk.s3
+    implementation libs.aws.lambda.core
+
+    implementation libs.bundles.logging
+
+    testImplementation libs.nva.json
+    testImplementation libs.zalando.problem
 }
