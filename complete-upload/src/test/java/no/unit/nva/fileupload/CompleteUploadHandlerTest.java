@@ -108,7 +108,8 @@ public class CompleteUploadHandlerTest {
         final CompleteMultipartUploadRequest completeMultipartUploadRequest =
                 completeUploadHandler.toCompleteMultipartUploadRequest(completeUploadRequestBody);
         assertThat(completeMultipartUploadRequest, is(notNullValue()));
-        assertThat(completeUploadRequestBody.getParts(), not(hasSize(completeMultipartUploadRequest.getPartETags().size())));
+        assertThat(completeUploadRequestBody.getParts(),
+                not(hasSize(completeMultipartUploadRequest.getPartETags().size())));
     }
 
     @Test
