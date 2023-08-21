@@ -9,8 +9,8 @@ import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.zalando.problem.Problem;
 
@@ -22,8 +22,10 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -43,8 +45,8 @@ public class AbortMultipartUploadHandlerTest {
     /**
      * Setup test env.
      */
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         Environment environment = mock(Environment.class);
         when(environment.readEnv(ApiGatewayHandler.ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
@@ -55,34 +57,33 @@ public class AbortMultipartUploadHandlerTest {
     }
 
     @Test
-    public void canAbortMultipartUpload() throws IOException {
+    void canAbortMultipartUpload() throws IOException {
         abortMultipartUploadHandler.handleRequest(abortMultipartUploadRequestWithBody(), outputStream, context);
 
         GatewayResponse<SimpleMessageResponse> response = GatewayResponse.fromOutputStream(outputStream,
                                                                                            SimpleMessageResponse.class);
-        assertNotNull(response);
-        assertEquals(SC_OK, response.getStatusCode());
-        assertNotNull(response.getBody());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(equalTo(SC_OK)));
+        assertThat(response.getBody(), is(notNullValue()));
     }
 
     @Test
-    public void abortMultipartUploadWithInvalidInputReturnsBadRequest() throws IOException {
+    void abortMultipartUploadWithInvalidInputReturnsBadRequest() throws IOException {
         abortMultipartUploadHandler.handleRequest(abortMultipartUploadRequestWithoutBody(), outputStream, context);
 
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
-        assertEquals(SC_BAD_REQUEST, response.getStatusCode());
+        assertThat(response.getStatusCode(), is(equalTo(SC_BAD_REQUEST)));
     }
 
     @Test
-    public void abortMultipartUploadWithS3ErrorReturnsNotFound() throws IOException {
+    void abortMultipartUploadWithS3ErrorReturnsNotFound() throws IOException {
         doThrow(AmazonS3Exception.class).when(s3client).abortMultipartUpload(Mockito.any());
         abortMultipartUploadHandler.handleRequest(abortMultipartUploadRequestWithBody(), outputStream, context);
 
         GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
-
-        assertNotNull(response);
-        assertEquals(SC_NOT_FOUND, response.getStatusCode());
-        assertNotNull(response.getBody());
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(equalTo(SC_NOT_FOUND)));
+        assertThat(response.getBody(), is(notNullValue()));
     }
 
     private InputStream abortMultipartUploadRequestWithBody()

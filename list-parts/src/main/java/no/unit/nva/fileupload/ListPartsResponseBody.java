@@ -3,6 +3,7 @@ package no.unit.nva.fileupload;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("PMD.ShortMethodName")
 public class ListPartsResponseBody extends ArrayList<ListPartsElement> {
 
     /**

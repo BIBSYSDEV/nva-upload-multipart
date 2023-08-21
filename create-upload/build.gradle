@@ -1,5 +1,20 @@
 dependencies {
     implementation project(':file-commons')
-    implementation group: 'org.apache.commons', name: 'commons-text', version: '1.10.0'
-    testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
+
+    implementation libs.apache.commons.text
+
+    implementation libs.jackson.annotations
+    implementation libs.jersey.common
+
+    implementation libs.aws.lambda.core
+    implementation libs.aws.sdk.s3
+
+    implementation libs.nva.core
+    implementation libs.nva.apigateway
+
+    implementation libs.bundles.logging
+
+    testImplementation libs.nva.json
+    testImplementation libs.zalando.problem
+    testImplementation libs.bundles.testing
 }

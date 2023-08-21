@@ -1,0 +1,76 @@
+plugins {
+    id 'java'
+    id 'checkstyle'
+    id 'pmd'
+    id 'jacoco-report-aggregation'
+//    id 'test-report-aggregation'
+}
+
+
+group = 'com.github.bibsysdev'
+
+dependencies {
+    testImplementation libs.bundles.testing
+}
+
+sourceCompatibility = JavaVersion.VERSION_17  // source-code version and must be <= targetCompatibility
+targetCompatibility = JavaVersion.VERSION_17 // bytecode target version
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+tasks.named('test') {
+    useJUnitPlatform {
+        excludeTags("online")
+    }
+    failFast = true
+    testLogging {
+        events 'skipped', 'passed', 'failed'
+    }
+}
+
+pmd {
+    toolVersion = '6.55.0'
+    ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
+    ruleSets = []
+    ignoreFailures = false
+}
+
+checkstyle {
+    configFile = rootProject.resources.text.fromFile('config/checkstyle/checkstyle.xml').asFile()
+    showViolations = true
+}
+tasks.withType(Checkstyle) .configureEach{
+    reports {
+        xml.required
+        html.required
+        html.stylesheet rootProject.resources.text.fromFile('config/checkstyle/checkstyle-simple.xsl')
+    }
+}
+
+
+check.dependsOn jacocoTestCoverageVerification
+jacocoTestCoverageVerification.dependsOn(jacocoTestReport)
+
+jacocoTestCoverageVerification {
+
+    violationRules {
+        rule {
+            limit {
+                counter = 'METHOD'
+                value = 'COVEREDRATIO'
+                minimum = 1.000
+            }
+        }
+
+        rule {
+            limit {
+                counter = 'CLASS'
+                value = 'COVEREDRATIO'
+                minimum = 1.000
+            }
+        }
+    }
+}

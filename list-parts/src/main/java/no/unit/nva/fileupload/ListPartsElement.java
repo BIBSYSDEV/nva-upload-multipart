@@ -2,6 +2,7 @@ package no.unit.nva.fileupload;
 
 import com.amazonaws.services.s3.model.PartSummary;
 
+@SuppressWarnings("PMD.ShortMethodName")
 public class ListPartsElement {
 
     private String partNumber;
