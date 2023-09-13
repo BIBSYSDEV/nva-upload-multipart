@@ -10,9 +10,7 @@ import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.S3Object;
-import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import no.unit.nva.fileupload.exception.InvalidInputException;
 import no.unit.nva.fileupload.exception.NotFoundException;
@@ -23,7 +21,6 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +31,7 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
     public static final String S3_ERROR = "S3 error";
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String CONTENT_DISPOSITION = "Content-Disposition";
+    public static final int WHERE_THE_ACTUAL_FILE_NAME_BEGINS = 11;
 
     private final transient String bucketName;
     private final transient AmazonS3 s3Client;
@@ -98,7 +96,8 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
     }
 
     private String toFileName(String contentDisposition) {
-        return contentDisposition.replace("filename=\\\"", EMPTY_STRING).replace("\\\"", EMPTY_STRING);
+        return contentDisposition.substring(WHERE_THE_ACTUAL_FILE_NAME_BEGINS,
+                                            contentDisposition.lastIndexOf('\\'));
     }
 
     /**

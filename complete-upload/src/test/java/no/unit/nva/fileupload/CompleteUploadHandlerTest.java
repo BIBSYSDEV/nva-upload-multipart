@@ -1,8 +1,6 @@
 package no.unit.nva.fileupload;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static no.unit.nva.fileupload.CompleteUploadHandler.CONTENT_DISPOSITION;
-import static no.unit.nva.fileupload.CompleteUploadHandler.CONTENT_TYPE;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
@@ -29,7 +27,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import no.unit.nva.fileupload.util.S3Constants;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
