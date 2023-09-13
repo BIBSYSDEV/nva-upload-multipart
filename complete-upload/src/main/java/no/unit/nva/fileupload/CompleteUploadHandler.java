@@ -11,6 +11,7 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.S3Object;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import no.unit.nva.fileupload.exception.InvalidInputException;
 import no.unit.nva.fileupload.exception.NotFoundException;
@@ -29,9 +30,7 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
 
     private static final Logger logger = LoggerFactory.getLogger(CompleteUploadHandler.class);
     public static final String S3_ERROR = "S3 error";
-    public static final String CONTENT_TYPE = "Content-Type";
-    public static final String CONTENT_DISPOSITION = "Content-Disposition";
-    public static final int WHERE_THE_ACTUAL_FILE_NAME_BEGINS = 11;
+    public static final String FILE_NAME_REGEX = "filename=\\\\\"(.*)\\\\\"";
 
     private final transient String bucketName;
     private final transient AmazonS3 s3Client;
@@ -96,8 +95,9 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
     }
 
     private String toFileName(String contentDisposition) {
-        return contentDisposition.substring(WHERE_THE_ACTUAL_FILE_NAME_BEGINS,
-                                            contentDisposition.lastIndexOf('\\'));
+        var pattern = Pattern.compile(FILE_NAME_REGEX);
+        var matcher = pattern.matcher(contentDisposition);
+        return matcher.matches() ? matcher.group(1) : contentDisposition;
     }
 
     /**

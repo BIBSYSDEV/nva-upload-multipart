@@ -1,6 +1,6 @@
 [versions]
 nvaVersion = { prefer = '1.29.4' }
-junit = { prefer = '5.8.2' }
+junit = { prefer = '5.9.2' }
 mockito = { prefer = '4.5.1' }
 hamcrest = { prefer = '2.2' }
 aws = { prefer = '1.12.462' }
@@ -20,6 +20,7 @@ apache-commons-text = { group = 'org.apache.commons', name = 'commons-text', ver
 hamcrest = { group = 'org.hamcrest', name = 'hamcrest', version.ref = 'hamcrest' }
 nva-testutils = { group = 'com.github.bibsysdev', name = 'nvatestutils', version.ref = 'nvaVersion' }
 junit-jupiter-engine = { group = 'org.junit.jupiter', name = 'junit-jupiter-engine', version.ref = 'junit' }
+junit-params = { group = 'org.junit.jupiter', name = 'junit-jupiter-params', version.ref = 'junit' }
 mockito-core = { group = 'org.mockito', name = 'mockito-core', version.ref = 'mockito' }
 
 nva-core = { group = 'com.github.bibsysdev', name = 'core', version.ref = 'nvaVersion' }
@@ -43,5 +44,5 @@ log4j-api = { group = 'org.apache.logging.log4j', name = 'log4j-api', version.re
 
 
 [bundles]
-testing = ['junit-jupiter-engine', 'hamcrest', 'mockito-core', 'nva-testutils']
+testing = ['junit-jupiter-engine', 'junit-params', 'hamcrest', 'mockito-core', 'nva-testutils']
 logging = ['slf4j', 'log4j-api']

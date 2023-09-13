@@ -33,6 +33,8 @@ import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.zalando.problem.Problem;
 
@@ -68,9 +70,10 @@ public class CompleteUploadHandlerTest {
         outputStream = new ByteArrayOutputStream();
     }
 
-    @Test
-    void canCompleteUpload() throws IOException {
-        mockS3();
+    @ParameterizedTest
+    @ValueSource(strings = {"filename=\\\"filename.pdf\\\"", "", "filename=\\\"\\\"", "filename.pdf"})
+    void canCompleteUpload(String filename) throws IOException {
+        mockS3(filename);
         completeUploadHandler.handleRequest(completeUploadRequestWithBody(), outputStream, context);
         var response =
             GatewayResponse.fromOutputStream(outputStream, CompleteUploadResponseBody.class);
@@ -130,14 +133,14 @@ public class CompleteUploadHandlerTest {
         assertThat(completeUploadRequestBody.getParts(), hasSize(completeMultipartUploadRequest.getPartETags().size()));
     }
 
-    private void mockS3() {
+    private void mockS3(String filename) {
         when(s3client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
             .thenReturn(new CompleteMultipartUploadResult());
         var s3object = new S3Object();
         s3object.setKey(randomString());
         var metadata = new ObjectMetadata();
         metadata.setContentLength(12345);
-        metadata.setContentDisposition("filename=\\\"someFile.png\\\"");
+        metadata.setContentDisposition(filename);
         metadata.setContentType("application/pdf");
         s3object.setObjectMetadata(metadata);
         when(s3client.getObject(any())).thenReturn(s3object);
