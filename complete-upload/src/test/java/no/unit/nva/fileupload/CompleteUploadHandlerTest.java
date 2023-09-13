@@ -71,7 +71,8 @@ public class CompleteUploadHandlerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"filename=\\\"filename.pdf\\\"", "", "filename=\\\"\\\"", "filename.pdf"})
+    @ValueSource(strings = {"filename=\"filename.pdf\"", "", "filename=\"\"", "filename.pdf",
+            "filename=\"Screenshot 2023-08-17 at 19.18.56.png\""})
     void canCompleteUpload(String filename) throws IOException {
         mockS3(filename);
         completeUploadHandler.handleRequest(completeUploadRequestWithBody(), outputStream, context);
