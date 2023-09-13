@@ -24,13 +24,14 @@ import com.amazonaws.services.s3.model.S3Object;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import no.unit.nva.fileupload.util.S3Constants;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
 import nva.commons.core.Environment;
+import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -40,10 +41,10 @@ import org.zalando.problem.Problem;
 
 public class CompleteUploadHandlerTest {
 
-    private static final String COMPLETE_UPLOAD_REQUEST_WITH_EMPTY_ELEMENT_JSON
-            = "/CompleteRequestWithEmptyElement.json";
-    private static final String COMPLETE_UPLOAD_REQUEST_WITH_ONE_PART_JSON
-            = "/CompleteRequestWithOnePart.json";
+    private static final Path COMPLETE_UPLOAD_REQUEST_WITH_EMPTY_ELEMENT_JSON
+            = Path.of("CompleteRequestWithEmptyElement.json");
+    private static final Path COMPLETE_UPLOAD_REQUEST_WITH_ONE_PART_JSON
+            = Path.of("CompleteRequestWithOnePart.json");
     public static final String TEST_BUCKET_NAME = "bucketName";
     public static final String SAMPLE_KEY = "key";
     public static final String SAMPLE_UPLOAD_ID = "uploadID";
@@ -61,7 +62,7 @@ public class CompleteUploadHandlerTest {
      */
     @BeforeEach
     void setUp() {
-        Environment environment = mock(Environment.class);
+        var environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn(WILDCARD);
         when(environment.readEnv(S3Constants.S3_UPLOAD_BUCKET_KEY)).thenReturn(S3Constants.S3_UPLOAD_BUCKET_KEY);
         s3client = mock(AmazonS3Client.class);
@@ -86,7 +87,7 @@ public class CompleteUploadHandlerTest {
     @Test
     void completeUploadWithInvalidInputReturnsBadRequest() throws IOException {
         completeUploadHandler.handleRequest(completeUploadRequestWithoutBody(), outputStream, context);
-        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
+        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
         assertThat(response.getStatusCode(), is(equalTo(SC_BAD_REQUEST)));
     }
 
@@ -96,7 +97,7 @@ public class CompleteUploadHandlerTest {
                 .thenThrow(AmazonS3Exception.class);
 
         completeUploadHandler.handleRequest(completeUploadRequestWithBody(), outputStream, context);
-        GatewayResponse<Problem> response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
+        var response = GatewayResponse.fromOutputStream(outputStream, Problem.class);
 
         assertThat(response, is(notNullValue()));
         assertThat(response.getStatusCode(), is(equalTo(SC_NOT_FOUND)));
@@ -105,13 +106,12 @@ public class CompleteUploadHandlerTest {
 
     @Test
     void canCreateRequestWithEmptyElement() throws IOException {
-        InputStream stream =
-                CompleteUploadHandlerTest.class.getResourceAsStream(COMPLETE_UPLOAD_REQUEST_WITH_EMPTY_ELEMENT_JSON);
-        final CompleteUploadRequestBody completeUploadRequestBody = dtoObjectMapper
-                .readValue(new InputStreamReader(stream), CompleteUploadRequestBody.class);
+
+        var json = IoUtils.stringFromResources(COMPLETE_UPLOAD_REQUEST_WITH_EMPTY_ELEMENT_JSON);
+        final var completeUploadRequestBody = dtoObjectMapper.readValue(json, CompleteUploadRequestBody.class);
         assertThat(completeUploadRequestBody, is(notNullValue()));
 
-        final CompleteMultipartUploadRequest completeMultipartUploadRequest =
+        final var completeMultipartUploadRequest =
                 completeUploadHandler.toCompleteMultipartUploadRequest(completeUploadRequestBody);
         assertThat(completeMultipartUploadRequest, is(notNullValue()));
         assertThat(completeUploadRequestBody.getParts(),
@@ -120,15 +120,13 @@ public class CompleteUploadHandlerTest {
 
     @Test
     void canCreateRequestWithOnePart() throws IOException {
-        InputStream stream =
-                CompleteUploadHandlerTest.class.getResourceAsStream(COMPLETE_UPLOAD_REQUEST_WITH_ONE_PART_JSON);
-        final CompleteUploadRequestBody completeUploadRequestBody = dtoObjectMapper
-                .readValue(new InputStreamReader(stream), CompleteUploadRequestBody.class);
+        var json = IoUtils.stringFromResources(COMPLETE_UPLOAD_REQUEST_WITH_ONE_PART_JSON);
+        final var completeUploadRequestBody = dtoObjectMapper.readValue(json, CompleteUploadRequestBody.class);
         assertThat(completeUploadRequestBody, is(notNullValue()));
         assertThat(completeUploadRequestBody.getParts(), is(notNullValue()));
         assertThat(completeUploadRequestBody.getParts(), hasSize(EXPECTED_ONE_PART));
 
-        final CompleteMultipartUploadRequest completeMultipartUploadRequest =
+        final var completeMultipartUploadRequest =
                 completeUploadHandler.toCompleteMultipartUploadRequest(completeUploadRequestBody);
         assertThat(completeMultipartUploadRequest, is(notNullValue()));
         assertThat(completeUploadRequestBody.getParts(), hasSize(completeMultipartUploadRequest.getPartETags().size()));
