@@ -21,6 +21,7 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,8 +91,14 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
                    .withSize(metadata.getContentLength())
                    .withLocation(s3Object.getKey())
                    .withMimeType(metadata.getContentType())
-                   .withFileName(metadata.getContentDisposition())
+                   .withFileName(toFileName(metadata.getContentDisposition()))
                    .build();
+    }
+
+    private String toFileName(String contentDisposition) {
+        return contentDisposition.split("=")[1]
+                           .replace("\"", StringUtils.EMPTY_STRING)
+                           .replace("\\", StringUtils.EMPTY_STRING);
     }
 
     /**

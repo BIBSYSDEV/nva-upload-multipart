@@ -140,7 +140,7 @@ public class CompleteUploadHandlerTest {
         s3object.setKey(randomString());
         var metadata = new ObjectMetadata();
         metadata.setContentLength(12345);
-        metadata.setContentDisposition("someFile.pdf");
+        metadata.setContentDisposition("filename=\\\"someFile.png\\\"");
         metadata.setContentType("application/pdf");
         s3object.setObjectMetadata(metadata);
         when(s3client.getObject(any())).thenReturn(s3object);
