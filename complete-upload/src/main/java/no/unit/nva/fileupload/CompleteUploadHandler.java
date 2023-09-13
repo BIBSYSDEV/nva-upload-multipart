@@ -31,6 +31,7 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
     public static final String S3_ERROR = "S3 error";
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String CONTENT_DISPOSITION = "Content-Disposition";
+    public static final int WHERE_THE_ACTUAL_FILE_NAME_BEGINS = 11;
 
     private final transient String bucketName;
     private final transient AmazonS3 s3Client;
@@ -90,8 +91,13 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
                    .withSize(metadata.getContentLength())
                    .withLocation(s3Object.getKey())
                    .withMimeType(metadata.getContentType())
-                   .withFileName(metadata.getContentDisposition())
+                   .withFileName(toFileName(metadata.getContentDisposition()))
                    .build();
+    }
+
+    private String toFileName(String contentDisposition) {
+        return contentDisposition.substring(WHERE_THE_ACTUAL_FILE_NAME_BEGINS,
+                                            contentDisposition.lastIndexOf('\\'));
     }
 
     /**
