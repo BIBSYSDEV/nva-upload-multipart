@@ -11,8 +11,6 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.S3Object;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import no.unit.nva.fileupload.exception.InvalidInputException;
 import no.unit.nva.fileupload.exception.NotFoundException;
@@ -21,7 +19,6 @@ import no.unit.nva.fileupload.util.S3Utils;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Failure;
@@ -76,17 +73,15 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
         return attempt(() -> toCompleteMultipartUploadRequest(input))
                    .map(this::completeMultipartUpload)
                    .map(this::toCompletedUploadResponseBody)
-                   .orElseThrow(handleFailure());
+                   .orElseThrow(CompleteUploadHandler::handleFailure);
     }
 
-    private static Function<Failure<CompleteUploadResponseBody>, ApiGatewayException> handleFailure() {
-        return failure -> {
-            var exception = failure.getException();
-            if (exception instanceof NotFoundException) {
-                return new nva.commons.apigateway.exceptions.NotFoundException(exception.getMessage());
-            }
-            return (ApiGatewayException) exception;
-        };
+    private static  ApiGatewayException handleFailure(
+        Failure<CompleteUploadResponseBody> failure) {
+        var exception = failure.getException();
+        return exception instanceof NotFoundException
+                   ? new nva.commons.apigateway.exceptions.NotFoundException(exception.getMessage())
+                   : (ApiGatewayException) exception;
     }
 
     private CompleteUploadResponseBody toCompletedUploadResponseBody(S3Object s3Object) {
