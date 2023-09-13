@@ -1,6 +1,9 @@
 package no.unit.nva.fileupload;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.fileupload.CompleteUploadHandler.CONTENT_DISPOSITION;
+import static no.unit.nva.fileupload.CompleteUploadHandler.CONTENT_TYPE;
+import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
@@ -10,6 +13,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -17,12 +21,15 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadResult;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.S3Object;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import no.unit.nva.fileupload.util.S3Constants;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
@@ -66,11 +73,9 @@ public class CompleteUploadHandlerTest {
 
     @Test
     void canCompleteUpload() throws IOException {
-        when(s3client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
-                .thenReturn(new CompleteMultipartUploadResult());
-
+        mockS3();
         completeUploadHandler.handleRequest(completeUploadRequestWithBody(), outputStream, context);
-        GatewayResponse<CompleteUploadResponseBody> response =
+        var response =
             GatewayResponse.fromOutputStream(outputStream, CompleteUploadResponseBody.class);
         assertThat(response, is(notNullValue()));
         assertThat(response.getStatusCode(), is(equalTo(SC_OK)));
@@ -126,6 +131,19 @@ public class CompleteUploadHandlerTest {
                 completeUploadHandler.toCompleteMultipartUploadRequest(completeUploadRequestBody);
         assertThat(completeMultipartUploadRequest, is(notNullValue()));
         assertThat(completeUploadRequestBody.getParts(), hasSize(completeMultipartUploadRequest.getPartETags().size()));
+    }
+
+    private void mockS3() {
+        when(s3client.completeMultipartUpload(Mockito.any(CompleteMultipartUploadRequest.class)))
+            .thenReturn(new CompleteMultipartUploadResult());
+        var s3object = new S3Object();
+        s3object.setKey(randomString());
+        var metadata = new ObjectMetadata();
+        metadata.setContentLength(12345);
+        metadata.setContentDisposition("someFile.pdf");
+        metadata.setContentType("application/pdf");
+        s3object.setObjectMetadata(metadata);
+        when(s3client.getObject(any())).thenReturn(s3object);
     }
 
     private InputStream completeUploadRequestWithBody() throws com.fasterxml.jackson.core.JsonProcessingException {

@@ -1,19 +1,51 @@
 package no.unit.nva.fileupload;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-public class CompleteUploadResponseBody {
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+@JsonSerialize
+public record CompleteUploadResponseBody(String location, String identifier, String fileName, String mimeType,
+                                         long size) {
 
-    private final String location;
+    public static final class Builder {
 
-    @JsonCreator
-    public CompleteUploadResponseBody(@JsonProperty("location") String location) {
-        this.location = location;
+        private String location;
+        private String identifier;
+        private String fileName;
+        private String mimeType;
+        private long size;
+
+        public Builder() {
+        }
+
+        public Builder withLocation(String location) {
+            return withIdentifier(location);
+        }
+
+        public Builder withIdentifier(String identifier) {
+            this.identifier = identifier;
+            this.location = identifier;
+            return this;
+        }
+
+        public Builder withFileName(String fileName) {
+            this.fileName = fileName;
+            return this;
+        }
+
+        public Builder withMimeType(String mimeType) {
+            this.mimeType = mimeType;
+            return this;
+        }
+
+        public Builder withSize(long size) {
+            this.size = size;
+            return this;
+        }
+
+        public CompleteUploadResponseBody build() {
+            return new CompleteUploadResponseBody(location, identifier, fileName, mimeType, size);
+        }
     }
-
-    public String getLocation() {
-        return location;
-    }
-
 }
