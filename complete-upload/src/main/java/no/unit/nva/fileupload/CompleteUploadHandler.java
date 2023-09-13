@@ -10,7 +10,9 @@ import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.S3Object;
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import no.unit.nva.fileupload.exception.InvalidInputException;
 import no.unit.nva.fileupload.exception.NotFoundException;
@@ -96,9 +98,7 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
     }
 
     private String toFileName(String contentDisposition) {
-        return contentDisposition.split("=")[1]
-                           .replace("\"", StringUtils.EMPTY_STRING)
-                           .replace("\\", StringUtils.EMPTY_STRING);
+        return contentDisposition.replace("filename=\\\"", EMPTY_STRING).replace("\\\"", EMPTY_STRING);
     }
 
     /**
