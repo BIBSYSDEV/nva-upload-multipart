@@ -6,6 +6,7 @@ info:
 paths:
   /create:
     post:
+      operationId: createMultipartUpload
       summary: Create a upload
       description: Creates a multipart upload for a file. This is later referenced for preparing file-parts, uploading, and finishing the upload..
       tags:
@@ -50,6 +51,7 @@ paths:
                 $ref: '#/components/schemas/Problem'
   /listparts:
     post:
+      operationId: listMultipartUploadParts
       summary: List the parts of a file that have already been uploaded.
       tags:
         - external
@@ -93,6 +95,7 @@ paths:
                 $ref: '#/components/schemas/Problem'
   /prepare:
     post:
+      operationId: prepareMultipartUploadPart
       summary: Generates a URL to upload a single file-part
       tags:
         - external
@@ -136,6 +139,7 @@ paths:
                 $ref: '#/components/schemas/Problem'
   /abort:
     post:
+      operationId: abortMultipartUpload
       summary: Aborts a upload
       description: Aborts the Multipart upload, and deletes all parts that have been uploaded so far.
       tags:
@@ -180,6 +184,7 @@ paths:
                 $ref: '#/components/schemas/Problem'
   /complete:
     post:
+      operationId: CompleteMultipartUpload
       summary: Completes a upload
       description: Completes a Multipart upload, combining all parts into a single object in the S3 bucket
       tags:
