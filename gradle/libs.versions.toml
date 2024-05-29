@@ -1,15 +1,14 @@
 [versions]
-nvaVersion = { prefer = '1.29.4' }
-junit = { prefer = '5.9.2' }
-mockito = { prefer = '4.5.1' }
+nvaVersion = { prefer = '1.39.3' }
+junit = { prefer = '5.10.2' }
+mockito = { prefer = '5.10.0' }
 hamcrest = { prefer = '2.2' }
-aws = { prefer = '1.12.462' }
-awsS3 = { prefer = '1.12.323' }
+aws = { prefer = '1.12.668' }
 jerseyVersion = { prefer = '3.0.6' }
 problemVersion = { prefer = '0.27.1' }
-slf4j = { prefer = '1.8.0-beta4' }
-log4j = { prefer = '2.17.2' }
-jackson = { prefer = '2.15.2' }
+slf4j = { require = '2.0.12' }
+log4j = { strictly = '2.23.0' }
+jackson = { strictly = '2.16.1' }
 apache = { prefer = '1.10.0' }
 
 
@@ -29,7 +28,7 @@ nva-json = { group = 'com.github.bibsysdev', name = 'json', version.ref = 'nvaVe
 
 
 aws-lambda-core = { group = 'com.amazonaws', name = 'aws-lambda-java-core', version.ref = 'aws' }
-aws-sdk-s3 = { group = 'com.amazonaws', name = 'aws-java-sdk-s3', version.ref = 'awsS3' }
+aws-sdk-s3 = { group = 'com.amazonaws', name = 'aws-java-sdk-s3', version.ref = 'aws' }
 
 jersey-common = { group = 'org.glassfish.jersey.core', name = 'jersey-common', version.ref = 'jerseyVersion' }
 
