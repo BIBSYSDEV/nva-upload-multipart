@@ -32,6 +32,10 @@ Parameters:
     Type: String
     Description: Base path mapping in CustomDomain
     Default: upload
+  AllowedOrigins:
+    Type: String
+    Description: comma separated list of external clients that are allowed to contact the HTTP APIs, "*" indicates that all origins are allowed
+    Default: '*'
 
 
 Resources:
@@ -58,7 +62,7 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
-          ALLOWED_ORIGIN:  '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
       Handler: no.unit.nva.fileupload.CreateUploadHandler::handleRequest
       Runtime: java17
       MemorySize: 1408
@@ -78,7 +82,7 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
-          ALLOWED_ORIGIN:  '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
       Handler: no.unit.nva.fileupload.ListPartsHandler::handleRequest
       Runtime: java17
       MemorySize: 1408
@@ -98,7 +102,7 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
-          ALLOWED_ORIGIN:  '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
       Handler: no.unit.nva.fileupload.PrepareUploadPartHandler::handleRequest
       Runtime: java17
       MemorySize: 1408
@@ -118,7 +122,7 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
-          ALLOWED_ORIGIN:  '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
       Handler: no.unit.nva.fileupload.AbortMultipartUploadHandler::handleRequest
       Runtime: java17
       MemorySize: 1408
@@ -138,7 +142,7 @@ Resources:
       Environment:
         Variables:
           S3_UPLOAD_BUCKET: !Ref  S3UploadBucket
-          ALLOWED_ORIGIN:  '*'
+          ALLOWED_ORIGIN: !Ref AllowedOrigins
       Handler: no.unit.nva.fileupload.CompleteUploadHandler::handleRequest
       Runtime: java17
       MemorySize: 1408

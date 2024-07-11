@@ -67,9 +67,15 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
     }
 
     @Override
+    protected void validateRequest(CompleteUploadRequestBody completeUploadRequestBody, RequestInfo requestInfo,
+                                   Context context) throws ApiGatewayException {
+        validate(completeUploadRequestBody);
+    }
+
+    @Override
     protected CompleteUploadResponseBody processInput(CompleteUploadRequestBody input, RequestInfo requestInfo,
                                                       Context context) throws ApiGatewayException {
-        validate(input);
+
         return attempt(() -> toCompleteMultipartUploadRequest(input))
                    .map(this::completeMultipartUpload)
                    .map(this::toCompletedUploadResponseBody)

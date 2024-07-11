@@ -87,9 +87,15 @@ public class CreateUploadHandler extends ApiGatewayHandler<CreateUploadRequestBo
     }
 
     @Override
+    protected void validateRequest(CreateUploadRequestBody createUploadRequestBody, RequestInfo requestInfo,
+                                   Context context) throws ApiGatewayException {
+        validate(createUploadRequestBody);
+    }
+
+    @Override
     protected CreateUploadResponseBody processInput(CreateUploadRequestBody input, RequestInfo requestInfo,
                                                     Context context) throws ApiGatewayException {
-        validate(input);
+
 
         String keyName = UUID.randomUUID().toString();
         InitiateMultipartUploadRequest initRequest =

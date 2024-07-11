@@ -1,5 +1,5 @@
 [versions]
-nvaVersion = { prefer = '1.39.3' }
+nvaVersion = { prefer = '1.40.6' }
 junit = { prefer = '5.10.2' }
 mockito = { prefer = '5.10.0' }
 hamcrest = { prefer = '2.2' }

@@ -63,9 +63,15 @@ public class ListPartsHandler extends ApiGatewayHandler<ListPartsRequestBody, Li
     }
 
     @Override
+    protected void validateRequest(ListPartsRequestBody listPartsRequestBody, RequestInfo requestInfo, Context context)
+        throws ApiGatewayException {
+        validate(listPartsRequestBody);
+    }
+
+    @Override
     protected ListPartsResponseBody processInput(ListPartsRequestBody input, RequestInfo requestInfo,
                                                  Context context) throws ApiGatewayException {
-        validate(input);
+
         ListPartsRequest listPartsRequest = toListPartsRequest(input);
         List<ListPartsElement> listParts = getListParts(listPartsRequest);
         return ListPartsResponseBody.of(listParts);
