@@ -65,9 +65,15 @@ public class PrepareUploadPartHandler extends ApiGatewayHandler<PrepareUploadPar
     }
 
     @Override
+    protected void validateRequest(PrepareUploadPartRequestBody prepareUploadPartRequestBody, RequestInfo requestInfo,
+                                   Context context) throws ApiGatewayException {
+        validate(prepareUploadPartRequestBody);
+    }
+
+    @Override
     protected PrepareUploadPartResponseBody processInput(PrepareUploadPartRequestBody input, RequestInfo requestInfo,
                                                          Context context) throws ApiGatewayException {
-        validate(input);
+
         GeneratePresignedUrlRequest predesignedUrlUploadRequest = toGeneratePresignedUrlRequest(input);
         return new PrepareUploadPartResponseBody(getUrl(predesignedUrlUploadRequest));
     }

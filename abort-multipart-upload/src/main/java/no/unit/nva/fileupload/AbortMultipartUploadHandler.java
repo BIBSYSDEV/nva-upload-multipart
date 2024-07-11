@@ -62,9 +62,15 @@ public class AbortMultipartUploadHandler extends ApiGatewayHandler<AbortMultipar
     }
 
     @Override
+    protected void validateRequest(AbortMultipartUploadRequestBody abortMultipartUploadRequestBody,
+                                   RequestInfo requestInfo, Context context) throws ApiGatewayException {
+        validate(abortMultipartUploadRequestBody);
+    }
+
+    @Override
     protected SimpleMessageResponse processInput(AbortMultipartUploadRequestBody input, RequestInfo requestInfo,
                                                  Context context) throws ApiGatewayException {
-        validate(input);
+
         abortMultipartUpload(toAbortMultipartUploadRequest(input));
         return new SimpleMessageResponse(MULTIPART_UPLOAD_ABORTED_MESSAGE);
     }
