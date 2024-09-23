@@ -1,15 +1,15 @@
 [versions]
-nvaVersion = { prefer = '1.40.6' }
-junit = { prefer = '5.10.2' }
-mockito = { prefer = '5.10.0' }
-hamcrest = { prefer = '2.2' }
-aws = { prefer = '1.12.668' }
-jerseyVersion = { prefer = '3.0.6' }
+nvaVersion = { prefer = '1.40.20' }
+junit = { prefer = '5.11.0' }
+mockito = { prefer = '5.13.0' }
+hamcrest = { prefer = '3.0' }
+aws = { prefer = '1.12.772' }
+jerseyVersion = { prefer = '3.1.8' }
 problemVersion = { prefer = '0.27.1' }
-slf4j = { require = '2.0.12' }
-log4j = { strictly = '2.23.0' }
-jackson = { strictly = '2.16.1' }
-apache = { prefer = '1.10.0' }
+slf4j = { require = '2.0.16' }
+log4j = { strictly = '2.24.0' }
+jackson = { strictly = '2.17.2' }
+apache = { prefer = '1.12.0' }
 
 
 [libraries]
