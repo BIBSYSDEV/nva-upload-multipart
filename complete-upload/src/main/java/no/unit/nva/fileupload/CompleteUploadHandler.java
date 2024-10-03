@@ -1,15 +1,17 @@
 package no.unit.nva.fileupload;
 
 import static java.util.Objects.requireNonNull;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.core.attempt.Try.attempt;
 import static org.apache.http.HttpStatus.SC_OK;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
-import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PartETag;
-import com.amazonaws.services.s3.model.S3Object;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -96,11 +98,11 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
                    : (ApiGatewayException) exception;
     }
 
-    private CompleteUploadResponseBody toCompletedUploadResponseBody(S3Object s3Object) {
-        var metadata = s3Object.getObjectMetadata();
+    private CompleteUploadResponseBody toCompletedUploadResponseBody(CompleteResult result) {
+        var metadata = result.getS3ObjectMetadata();
         return new CompleteUploadResponseBody.Builder()
                    .withSize(metadata.getContentLength())
-                   .withLocation(s3Object.getKey())
+                   .withLocation(result.getKey())
                    .withMimeType(metadata.getContentType())
                    .withFileName(toFileName(metadata.getContentDisposition()))
                    .build();
@@ -139,14 +141,18 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
         return new PartETag(completeUploadPart.getPartNumber(), completeUploadPart.getEtag());
     }
 
-    private S3Object completeMultipartUpload(
-            CompleteMultipartUploadRequest completeMultipartUploadRequest) throws NotFoundException {
+    private CompleteResult completeMultipartUpload(
+            CompleteMultipartUploadRequest completeMultipartUploadRequest)
+        throws NotFoundException, JsonProcessingException {
         try {
+            logger.info("Completing multipart upload...");
             var result = s3Client.completeMultipartUpload(completeMultipartUploadRequest);
-            var request = new GetObjectRequest(bucketName, result.getKey());
+            logger.info("Completed multipart upload");
+            logger.info(dtoObjectMapper.writeValueAsString(result));
+            var request = new GetObjectMetadataRequest(bucketName, result.getKey());
             request.setSdkRequestTimeout(SDK_REQUEST_TIMEOUT);
             request.setSdkClientExecutionTimeout(SDK_CLIENT_EXECUTION_TIMEOUT);
-            return s3Client.getObject(request);
+            return new CompleteResult(result.getKey(), s3Client.getObjectMetadata(request));
         } catch (AmazonS3Exception e) {
             logger.warn(e.getMessage());
             throw new NotFoundException(S3_ERROR, e);
@@ -167,5 +173,23 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
     @Override
     protected Integer getSuccessStatusCode(CompleteUploadRequestBody input, CompleteUploadResponseBody output) {
         return SC_OK;
+    }
+
+    private static class CompleteResult {
+        private final String key;
+        private final ObjectMetadata objectMetadata;
+
+        public CompleteResult(String key, ObjectMetadata s3Object) {
+            this.key = key;
+            this.objectMetadata = s3Object;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public ObjectMetadata getS3ObjectMetadata() {
+            return objectMetadata;
+        }
     }
 }

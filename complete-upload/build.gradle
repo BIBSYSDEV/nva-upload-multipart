@@ -3,6 +3,7 @@ dependencies {
 
     implementation libs.nva.apigateway
     implementation libs.nva.core
+    implementation libs.nva.json
 
     implementation libs.jackson.annotations
 
@@ -11,7 +12,6 @@ dependencies {
 
     implementation libs.bundles.logging
 
-    testImplementation libs.nva.json
     testImplementation libs.zalando.problem
 }
 
