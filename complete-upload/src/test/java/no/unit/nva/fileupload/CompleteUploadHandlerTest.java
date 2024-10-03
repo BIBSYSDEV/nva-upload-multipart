@@ -145,6 +145,7 @@ public class CompleteUploadHandlerTest {
         metadata.setContentType("application/pdf");
         s3object.setObjectMetadata(metadata);
         when(s3client.getObject(any())).thenReturn(s3object);
+        when(s3client.getObjectMetadata(any())).thenReturn(metadata);
     }
 
     private InputStream completeUploadRequestWithBody() throws com.fasterxml.jackson.core.JsonProcessingException {
