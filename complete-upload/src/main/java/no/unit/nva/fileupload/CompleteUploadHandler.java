@@ -32,6 +32,12 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
     public static final String S3_ERROR = "S3 error";
     public static final String FILE_NAME_REGEX = "filename=\"(.*)\"";
 
+    // The total time the SDK will wait for the entire request execution, including retries
+    public static final int SDK_CLIENT_EXECUTION_TIMEOUT = 8 * 1000;
+
+    // The time the SDK will wait for data transfer for a single request.
+    public static final int SDK_REQUEST_TIMEOUT = 2 * 1000;
+
     private final transient String bucketName;
     private final transient AmazonS3 s3Client;
 
@@ -117,6 +123,8 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
         completeMultipartUploadRequest.setBucketName(bucketName);
         completeMultipartUploadRequest.setKey(requestBody.getKey());
         completeMultipartUploadRequest.setUploadId(requestBody.getUploadId());
+        completeMultipartUploadRequest.setSdkClientExecutionTimeout(SDK_CLIENT_EXECUTION_TIMEOUT);
+        completeMultipartUploadRequest.setSdkRequestTimeout(SDK_REQUEST_TIMEOUT);
 
         List<PartETag> partETags = requestBody.getParts().stream()
                 .filter(CompleteUploadPart::hasValue)
@@ -135,7 +143,10 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
             CompleteMultipartUploadRequest completeMultipartUploadRequest) throws NotFoundException {
         try {
             var result = s3Client.completeMultipartUpload(completeMultipartUploadRequest);
-            return s3Client.getObject(new GetObjectRequest(bucketName, result.getKey()));
+            var request = new GetObjectRequest(bucketName, result.getKey());
+            request.setSdkRequestTimeout(SDK_REQUEST_TIMEOUT);
+            request.setSdkClientExecutionTimeout(SDK_CLIENT_EXECUTION_TIMEOUT);
+            return s3Client.getObject(request);
         } catch (AmazonS3Exception e) {
             logger.warn(e.getMessage());
             throw new NotFoundException(S3_ERROR, e);
