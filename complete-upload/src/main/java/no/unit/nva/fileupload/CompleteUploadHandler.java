@@ -35,10 +35,10 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
     public static final String FILE_NAME_REGEX = "filename=\"(.*)\"";
 
     // The total time the SDK will wait for the entire request execution, including retries
-    public static final int SDK_CLIENT_EXECUTION_TIMEOUT = 8 * 1000;
+    public static final int SDK_CLIENT_EXECUTION_TIMEOUT_MS = 8 * 1000; // 8 seconds, enough for 3 retries of 2 seconds
 
     // The time the SDK will wait for data transfer for a single request.
-    public static final int SDK_REQUEST_TIMEOUT = 2 * 1000;
+    public static final int SDK_REQUEST_TIMEOUT_MS = 2 * 1000; // 2 seconds
 
     private final transient String bucketName;
     private final transient AmazonS3 s3Client;
@@ -125,8 +125,8 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
         completeMultipartUploadRequest.setBucketName(bucketName);
         completeMultipartUploadRequest.setKey(requestBody.getKey());
         completeMultipartUploadRequest.setUploadId(requestBody.getUploadId());
-        completeMultipartUploadRequest.setSdkClientExecutionTimeout(SDK_CLIENT_EXECUTION_TIMEOUT);
-        completeMultipartUploadRequest.setSdkRequestTimeout(SDK_REQUEST_TIMEOUT);
+        completeMultipartUploadRequest.setSdkClientExecutionTimeout(SDK_CLIENT_EXECUTION_TIMEOUT_MS);
+        completeMultipartUploadRequest.setSdkRequestTimeout(SDK_REQUEST_TIMEOUT_MS);
 
         List<PartETag> partETags = requestBody.getParts().stream()
                 .filter(CompleteUploadPart::hasValue)
@@ -150,8 +150,8 @@ public class CompleteUploadHandler extends ApiGatewayHandler<CompleteUploadReque
             logger.info("Completed multipart upload");
             logger.info(dtoObjectMapper.writeValueAsString(result));
             var request = new GetObjectMetadataRequest(bucketName, result.getKey());
-            request.setSdkRequestTimeout(SDK_REQUEST_TIMEOUT);
-            request.setSdkClientExecutionTimeout(SDK_CLIENT_EXECUTION_TIMEOUT);
+            request.setSdkRequestTimeout(SDK_REQUEST_TIMEOUT_MS);
+            request.setSdkClientExecutionTimeout(SDK_CLIENT_EXECUTION_TIMEOUT_MS);
             return new CompleteResult(result.getKey(), s3Client.getObjectMetadata(request));
         } catch (AmazonS3Exception e) {
             logger.warn(e.getMessage());
