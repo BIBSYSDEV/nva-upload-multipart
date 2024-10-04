@@ -10,6 +10,6 @@ repositories {
 
 dependencies {
     implementation group: 'nebula.lint', name: 'nebula.lint.gradle.plugin', version: '17.6.1'
-    implementation group: 'org.jacoco', name: 'org.jacoco.core', version: '0.8.7'
+    implementation group: 'org.jacoco', name: 'org.jacoco.core', version: '0.8.11'
     implementation group: 'org.jacoco', name: 'org.jacoco.report', version: '0.8.7'
 }
